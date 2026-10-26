@@ -54,10 +54,9 @@
 
   &__up-to {
     color: var(--color-brand-yellow);
-    font-family: "Playfair Display", serif;
-    font-size: var(--font-size-m);
-    font-style: italic;
-    font-weight: 700;
+    font-size: var(--font-size-s);
+    font-weight: 800;
+    text-transform: uppercase;
   }
 
   &__percent {
@@ -76,6 +75,7 @@
   &__timer {
     font-size: var(--font-size-s);
     font-variant-numeric: tabular-nums;
+    font-weight: 700;
     opacity: 0.8;
   }
 
