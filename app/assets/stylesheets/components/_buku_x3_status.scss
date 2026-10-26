@@ -130,6 +130,12 @@
     flex-wrap: wrap;
     gap: var(--space-xs);
     justify-content: center;
+
+    // Exo 2's glyphs sit low in their line box; shift the padding so the
+    // letters, not the box, are centred in the pill.
+    .action-btn--small {
+      padding-block: 2px 4px;
+    }
   }
 
   // "stardance ends in" over the clock.
