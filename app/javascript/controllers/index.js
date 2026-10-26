@@ -178,7 +178,6 @@ application.register("copy", CopyController);
 import CountUpController from "./count_up_controller";
 application.register("count-up", CountUpController);
 
-
 import CountdownController from "./countdown_controller";
 application.register("countdown", CountdownController);
 
