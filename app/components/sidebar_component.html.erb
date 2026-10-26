@@ -33,7 +33,9 @@
 
           <% label_block = capture do %>
             <span class="sidebar__nav-label"><%= item[:label] %></span>
-            <% if item[:notify] %>
+            <% if item[:tag] %>
+              <span class="sidebar__nav-tag"><%= item[:tag] %></span>
+            <% elsif item[:notify] %>
               <span class="sidebar__nav-notify-dot" aria-hidden="true"></span>
             <% end %>
           <% end %>

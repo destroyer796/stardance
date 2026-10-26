@@ -36,7 +36,19 @@ class Shop::ClearanceSale
 
   # A random pictured item from the current (or next) sale.
   def featured_item
-    @featured_item ||= (live? ? @live : next_sale_items).select { |item| item.image.attached? }.sample
+    showcase(1).first
+  end
+
+  # Up to `count` random pictured items from the current (or next) sale.
+  def showcase(count)
+    @pictured ||= (live? ? @live : next_sale_items).select { |item| item.image.attached? }.shuffle
+    @pictured.first(count)
+  end
+
+  # Stable for one sale and different for the next, so "seen it" can be
+  # remembered per sale.
+  def key
+    Digest::SHA1.hexdigest([ title, @live.filter_map(&:sale_starts_at).min&.to_i ].join("/")).first(12)
   end
 
   private

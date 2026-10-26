@@ -3,14 +3,13 @@
 # Public team progress with an optional private role reminder. Call sites pass
 # the viewer, never a profile/project owner; do not cache across users.
 class BukuX3StatusComponent < ViewComponent::Base
-  # ship_path / sale are the home page's calls to action under the clock.
-  def initialize(user:, compact: false, preview: false, preview_role: "buku", ship_path: nil, sale: nil)
+  # ship_path is the home page's call to action under the clock.
+  def initialize(user:, compact: false, preview: false, preview_role: "buku", ship_path: nil)
     @user = user
     @compact = compact
     @preview = preview
     @preview_role = preview_role
     @ship_path = ship_path
-    @sale = sale
   end
 
   def render?
@@ -36,8 +35,7 @@ class BukuX3StatusComponent < ViewComponent::Base
 
   def ends_at = Rails.application.config.stardance_ends_at
   attr_reader :ship_path
-  def live_sale = (@sale if @sale&.live?)
-  def ctas? = !compact? && (ship_path.present? || live_sale.present?)
+  def ship_cta? = !compact? && ship_path.present?
   def compact? = @compact
   def preview? = @preview && Rails.env.development?
   def buku?

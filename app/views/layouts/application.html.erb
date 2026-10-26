@@ -120,6 +120,9 @@
       <% end %>
     <% end %>
     <div id="flash-region"><%= render "shared/flash" %></div>
+    <% if current_user && !@_admin_layout && request.path != shop_category_path(ShopCategory::SALE_SLUG) && (sale = clearance_sale) %>
+      <%= render "shared/clearance_sale_popup", sale: sale %>
+    <% end %>
     <%= render Onboarding::GuestBannerComponent.new unless @hide_sidebar %>
 <% if @_admin_layout %>
 <div class="admin-content"><%= yield %></div>
