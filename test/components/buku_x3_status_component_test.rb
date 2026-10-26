@@ -78,6 +78,7 @@ class BukuX3StatusComponentTest < ViewComponent::TestCase
     # No leaderboard passed in, so no tab.
     assert_no_selector ".buku-x3-status__leaderboard-tab"
 
+    @user.dismiss_thing!("stardance_finale")
     Rails.application.config.stub(:stardance_ends_at, 1.minute.ago) do
       render_inline BukuX3StatusComponent.new(user: @user)
     end

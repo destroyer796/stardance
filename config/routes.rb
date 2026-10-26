@@ -428,6 +428,8 @@ Rails.application.routes.draw do
     mount Raffle::Engine, at: "/", as: :raffle_engine
   end
 
+  get "server_time", to: "server_time#show"
+
   delete "dismiss_raffle_banner", to: "sessions#dismiss_raffle_banner", as: :dismiss_raffle_banner
 
   # Sitemap

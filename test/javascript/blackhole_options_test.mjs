@@ -2,6 +2,108 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import BlackholeController from "../../app/javascript/controllers/blackhole_controller.js";
 
+function finaleController(overrides = {}) {
+  return {
+    finale: { from: 0.25, progress: -1, startedAt: 1000 },
+    requested: 0.25,
+    level: 0.25,
+    reducedMotion: { matches: false },
+    scenesBlocked: () => false,
+    element: { style: { setProperty() {} } },
+    wake() {},
+    ...overrides,
+  };
+}
+
+test("finale ramps over twenty seconds from the viewer's starting damage", () => {
+  const controller = finaleController();
+  const update = (offset) =>
+    BlackholeController.prototype.updateFinale.call(controller, 1000 + offset);
+  update(0);
+  assert.equal(controller.requested, 0.25);
+  update(10_000);
+  assert.equal(controller.requested, 0.625);
+  update(20_000);
+  assert.equal(controller.requested, 1);
+  assert.equal(controller.level, 1);
+});
+
+test("disintegration waits for the cutscene to start", () => {
+  const controller = finaleController({ finale: null });
+  BlackholeController.prototype.updateFinale.call(controller, Date.now());
+  assert.equal(controller.requested, 0.25);
+});
+
+test("visual opt-out and disabled visual intensity skip destruction but still reach the video", () => {
+  for (const override of [
+    { disintegrationEnabledValue: false },
+    { visualIntensityValue: 0 },
+  ]) {
+    const controller = finaleController({
+      resetFinale() {},
+      dispatch(name) {
+        this.event = name;
+      },
+      ...override,
+    });
+    BlackholeController.prototype.startFinale.call(controller);
+    assert.equal(controller.event, "finale-complete");
+  }
+});
+
+test("reduced motion reaches the final mask without animating", () => {
+  const controller = finaleController({ reducedMotion: { matches: true } });
+  BlackholeController.prototype.updateFinale.call(controller, 1000);
+  assert.equal(controller.level, 1);
+});
+
+test("live polls keep finale damage without changing the reported team score", () => {
+  const controller = finaleController({
+    finale: { from: 0.25, progress: 0.5 },
+    progressUrlValue: "/progress",
+    dispatch(name, { detail }) {
+      this.progress = detail;
+    },
+  });
+  BlackholeController.prototype.setIntensity.call(controller, 10);
+  assert.equal(controller.requested, 0.625);
+  assert.equal(controller.progress.percent, 10);
+  assert.equal(
+    BlackholeController.prototype.repairStrength.call(controller, {}, {}),
+    0,
+  );
+});
+
+test("completed finale hides offscreen surfaces and text copies and makes controls inert", () => {
+  const element = {
+    getBoundingClientRect() {
+      assert.fail("completion must cover offscreen surfaces too");
+    },
+    inert: false,
+  };
+  let mask;
+  const surface = {
+    path: {
+      setAttribute(name, value) {
+        mask = value;
+      },
+    },
+    textCopy: { hidden: false },
+  };
+  const controller = {
+    finale: { progress: 1 },
+    level: 1,
+    surfaces: new Map([[element, surface]]),
+    textTarget: { hidden: false },
+    recordMaskCost() {},
+  };
+  BlackholeController.prototype.cutSurfaces.call(controller, false);
+  assert.equal(mask, "M0,0Z");
+  assert.equal(element.inert, true);
+  assert.equal(surface.textCopy.hidden, true);
+  assert.equal(controller.textTarget.hidden, true);
+});
+
 test("navigation restores damage immediately, but live changes still animate", () => {
   const controller = {
     scenesBlocked: () => false,

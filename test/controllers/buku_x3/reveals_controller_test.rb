@@ -19,6 +19,8 @@ class BukuX3::RevealsControllerTest < ActionDispatch::IntegrationTest
       get home_path
       assert_select ".event-simulator", count: 1
       assert_select "[data-blackhole-simulator-enabled-value='true']", count: 1
+      assert_select "[data-action='stardance-finale#preview']", count: 1
+      assert_select "[data-action='stardance-finale#resetPreview']", count: 1
       host! "stardance.example"
       get home_path
       assert_select ".event-simulator", count: 0

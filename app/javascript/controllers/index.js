@@ -528,3 +528,6 @@ application.register("buku-x3-status", BukuX3StatusController);
 
 import WrongToolSheetController from "./wrong_tool_sheet_controller";
 application.register("wrong-tool-sheet", WrongToolSheetController);
+
+import StardanceFinaleController from "./stardance_finale_controller";
+application.register("stardance-finale", StardanceFinaleController);
