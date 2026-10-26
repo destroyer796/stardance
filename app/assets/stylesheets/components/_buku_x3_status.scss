@@ -124,6 +124,14 @@
     color: var(--color-set-1-bg);
   }
 
+  // Home page calls to action under the tug of war.
+  &__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    justify-content: center;
+  }
+
   // "stardance ends in" over the clock.
   &__countdown {
     // Same width as &__damage, so the clock can be sized against the rope.
