@@ -12,7 +12,7 @@ class HomeBukuLeaderboardTest < ActionDispatch::IntegrationTest
     assert_select ".buku-x3-status[data-open]", count: 0
     assert_select ".buku-leaderboard__drawer > .buku-leaderboard__panel#buku-leaderboard-panel .buku-leaderboard__team", count: 2
     assert_select ".buku-leaderboard__panel > .buku-leaderboard__note:first-child", text: /top five.*limited-edition/
-    assert_select ".buku-x3-status__countdown > button.buku-x3-status__leaderboard-toggle[aria-controls='buku-leaderboard-panel']", count: 1
+    assert_select ".buku-x3-status > button.buku-x3-status__leaderboard-tab[aria-controls='buku-leaderboard-panel']", count: 1
     assert_select ".buku-leaderboard-promo, a[href='/buku_x3/leaderboard']", count: 0
   end
 

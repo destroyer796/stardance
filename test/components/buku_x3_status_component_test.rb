@@ -74,9 +74,9 @@ class BukuX3StatusComponentTest < ViewComponent::TestCase
     end
     assert_selector ".buku-x3-status__countdown + .buku-x3-status__damage"
     assert_selector ".buku-x3-status__countdown-caption + .buku-x3-status__clock[data-controller='countdown'][data-countdown-clock-value='true'][aria-hidden='true']"
-    assert_selector ".buku-x3-status__countdown-caption", text: /stardance\s*ends in/
-    # No leaderboard passed in, so no toggle.
-    assert_no_selector ".buku-x3-status__leaderboard-toggle"
+    assert_selector ".buku-x3-status__countdown-caption", text: "stardance ends in"
+    # No leaderboard passed in, so no tab.
+    assert_no_selector ".buku-x3-status__leaderboard-tab"
 
     Rails.application.config.stub(:stardance_ends_at, 1.minute.ago) do
       render_inline BukuX3StatusComponent.new(user: @user)
@@ -84,19 +84,16 @@ class BukuX3StatusComponentTest < ViewComponent::TestCase
     assert_no_selector ".buku-x3-status__countdown"
   end
 
-  test "leaderboard toggle sits beside the clock, and keeps its row with the clock off" do
+  test "leaderboard opens from a sideways tab on the box, with or without the clock" do
     Rails.application.config.stub(:stardance_ends_at, 2.days.from_now) do
       render_inline(BukuX3StatusComponent.new(user: @user)) { "leaderboard" }
       assert_selector ".buku-x3-status[data-controller='buku-x3-status buku-leaderboard-panel']"
-      assert_selector ".buku-x3-status__clock + button.buku-x3-status__leaderboard-toggle[aria-expanded='false'][aria-controls='buku-leaderboard-panel']" do
-        assert_selector ".buku-x3-status__leaderboard-show", text: /show\s*leaderboard\?/
-        assert_selector ".buku-x3-status__leaderboard-hide", text: /hide\s*leaderboard\?/
-      end
+      assert_selector ".buku-x3-status > button.buku-x3-status__leaderboard-tab[aria-expanded='false'][aria-controls='buku-leaderboard-panel']", exact_text: "leaderboard"
 
       @user.preference.update!(countdown_enabled: false)
       render_inline(BukuX3StatusComponent.new(user: @user)) { "leaderboard" }
       assert_no_selector ".buku-x3-status__clock"
-      assert_selector ".buku-x3-status__countdown > .buku-x3-status__leaderboard-toggle"
+      assert_selector ".buku-x3-status > .buku-x3-status__leaderboard-tab"
     end
   end
 

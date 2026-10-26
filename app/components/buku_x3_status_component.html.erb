@@ -13,21 +13,17 @@
     </div>
   <% end %>
   <% unless compact? %>
-    <% if countdown? || leaderboard? %>
-      <%# One row: "stardance / ends in", the clock, then the leaderboard toggle. Screen readers get "6d 8h 19min" instead of the bare DD:HH:MM:SS clock. %>
+    <% if leaderboard? %>
+      <%# A sideways tab hanging off the box's right edge. %>
+      <button type="button" class="buku-x3-status__leaderboard-tab" aria-expanded="false" aria-controls="buku-leaderboard-panel"
+              data-buku-leaderboard-panel-target="toggle" data-action="buku-leaderboard-panel#toggle">leaderboard</button>
+    <% end %>
+    <% if countdown? %>
+      <%# Screen readers get "6d 8h 19min" instead of the bare DD:HH:MM:SS clock. %>
       <div class="buku-x3-status__countdown">
-        <% if countdown? %>
-          <p class="buku-x3-status__countdown-caption">stardance<br>ends in<span class="buku-x3-status__countdown-text"> <span data-controller="countdown" data-countdown-reset-at-value="<%= ends_at.iso8601 %>"></span></span></p>
-          <p class="buku-x3-status__clock" aria-hidden="true" data-controller="countdown"
-             data-countdown-reset-at-value="<%= ends_at.iso8601 %>" data-countdown-clock-value="true"></p>
-        <% end %>
-        <% if leaderboard? %>
-          <button type="button" class="buku-x3-status__leaderboard-toggle" aria-expanded="false" aria-controls="buku-leaderboard-panel"
-                  data-buku-leaderboard-panel-target="toggle" data-action="buku-leaderboard-panel#toggle">
-            <span class="buku-x3-status__leaderboard-show">show<br>leaderboard?</span>
-            <span class="buku-x3-status__leaderboard-hide">hide<br>leaderboard?</span>
-          </button>
-        <% end %>
+        <p class="buku-x3-status__countdown-caption">stardance ends in<span class="buku-x3-status__countdown-text"> <span data-controller="countdown" data-countdown-reset-at-value="<%= ends_at.iso8601 %>"></span></span></p>
+        <p class="buku-x3-status__clock" aria-hidden="true" data-controller="countdown"
+           data-countdown-reset-at-value="<%= ends_at.iso8601 %>" data-countdown-clock-value="true"></p>
       </div>
     <% end %>
     <div class="buku-x3-status__damage">

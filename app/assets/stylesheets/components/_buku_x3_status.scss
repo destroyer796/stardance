@@ -56,112 +56,102 @@
   }
 
   // Tuck the rope up under the clock. Only the characters' heads rise into
-  // that space, and they sit beside the clock row's labels, not under them.
+  // that space, and they sit beside the clock, not under it. Phones get the
+  // full-width clock, so the rope stays put there.
   &:has(&__clock) &__tug {
     margin-top: calc(var(--character-width) * -0.2);
-  }
 
-  // "stardance / ends in", the clock, then the leaderboard toggle, centered
-  // as one group.
-  &__countdown {
-    // Same width as &__damage, so the clock can be sized against the rope.
-    --character-width: clamp(64px, 14cqi, 96px);
-    // "00:00:00:00" with the fixed digit slots is about this many em wide.
-    --clock-width-em: 5.9;
-    // Room kept on each side of the clock for the two-line labels.
-    --clock-side: 6.5rem;
-
-    container-type: inline-size;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    // Labels sit at the bottom of the row, next to the rope, and hug the clock.
-    align-items: end;
-    gap: var(--space-xs);
-
-    // This is the container, so it can't query its own width; go by the
-    // viewport for phones instead.
-    @media (max-width: 480px) {
-      --clock-side: 5rem;
+    @container (max-width: 480px) {
+      margin-top: 0;
     }
   }
 
-  &__countdown-caption {
-    grid-column: 1;
-    // Same box as the toggle's padding, so both labels' lines line up.
-    padding-block: var(--space-xxxs);
-    justify-self: end;
-    text-align: right;
-  }
-
-  &__clock {
-    grid-column: 2;
-  }
-
-  &__leaderboard-toggle {
-    grid-column: 3;
-    justify-self: start;
-    text-align: left;
-  }
-
-  // With the clock turned off, the toggle keeps to the right edge.
-  &__countdown:not(:has(.buku-x3-status__clock)) &__leaderboard-toggle {
-    justify-self: end;
-    text-align: right;
-  }
-
-  &__countdown-caption,
-  &__leaderboard-toggle {
-    margin: 0;
-    line-height: 1.25;
+  // A sideways tab hanging off the box's right edge. Pinned from the top
+  // (roughly centered on the closed box), so it stays put as the box grows.
+  &__leaderboard-tab {
+    position: absolute;
+    top: 2.5rem;
+    right: 0;
+    z-index: 3;
+    padding: var(--space-s) var(--space-xxxs);
+    border: 2px solid
+      color-mix(in srgb, var(--buku-team-color) 70%, transparent);
+    border-left: 0;
+    border-radius: 0 8px 8px 0;
+    background: var(--color-set-1-bg);
     color: var(--color-brand-cream);
+    font-family: inherit;
     font-size: 0.625rem;
     letter-spacing: 0.18em;
+    line-height: 1;
     text-transform: uppercase;
-
-    // Give the clock more of a phone's width.
-    @container (max-width: 480px) {
-      letter-spacing: 0.06em;
-    }
-  }
-
-  &__leaderboard-toggle {
-    padding: var(--space-xxxs);
-    border: 0;
-    border-radius: 8px;
-    background: none;
-    font-family: inherit;
+    writing-mode: vertical-rl;
+    transform: translateX(100%);
     cursor: pointer;
+    transition:
+      background 180ms ease,
+      color 180ms ease;
 
     &:hover {
       color: var(--color-brand-off-white);
     }
 
     &:focus-visible {
-      outline: 2px solid currentColor;
-      outline-offset: 1px;
+      outline: 2px solid var(--color-brand-off-white);
+      outline-offset: 2px;
+    }
+
+    // The single-column layout (the sidebar's 960px breakpoint) leaves only
+    // a narrow gutter to hang into, so sit just inside the edge there.
+    @media (max-width: 960px) {
+      border-right: 0;
+      border-left: 2px solid
+        color-mix(in srgb, var(--buku-team-color) 70%, transparent);
+      border-radius: 8px 0 0 8px;
+      transform: none;
     }
   }
 
-  &__leaderboard-hide,
-  &[data-open] &__leaderboard-show {
-    display: none;
+  // Make room for the tab once it sits inside the edge.
+  @media (max-width: 960px) {
+    &:has(> &__leaderboard-tab) {
+      padding-right: calc(var(--space-m) + 1.25rem);
+    }
   }
 
-  &[data-open] &__leaderboard-hide {
-    display: inline;
+  &[data-open] &__leaderboard-tab {
+    background: var(--buku-team-color);
+    color: var(--color-set-1-bg);
+  }
+
+  // "stardance ends in" over the clock.
+  &__countdown {
+    // Same width as &__damage, so the clock can be sized against the rope.
+    --character-width: clamp(64px, 14cqi, 96px);
+    // "00:00:00:00" with the fixed digit slots is about this many em wide.
+    --clock-width-em: 5.9;
+
+    container-type: inline-size;
+    text-align: center;
+  }
+
+  &__countdown-caption {
+    margin: 0 0 var(--space-xxxs);
+    line-height: 1;
+    color: var(--color-brand-cream);
+    font-size: 0.625rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
   }
 
   &__clock {
     margin: 0;
     color: var(--color-brand-cream);
     font-family: "Playfair Display", serif;
-    // About three quarters of the rope's width, but never so wide that the
-    // side labels run out of room (phones).
-    font-size: min(
-      calc(
-        (100cqi - 1.86 * var(--character-width)) * 0.75 / var(--clock-width-em)
-      ),
-      calc((100cqi - 2 * var(--clock-side)) / var(--clock-width-em))
+    // About three quarters of the rope's width; most of the box on phones,
+    // where the rope gets short.
+    font-size: calc(
+      (100cqi - 1.86 * var(--character-width)) * 0.75 / var(--clock-width-em)
     );
     font-style: italic;
     font-variant-numeric: lining-nums;
@@ -170,6 +160,10 @@
     white-space: nowrap;
     text-shadow: 0 0 var(--space-s)
       color-mix(in srgb, var(--color-brand-cream) 45%, transparent);
+
+    @container (max-width: 480px) {
+      font-size: calc(100cqi * 0.8 / var(--clock-width-em));
+    }
 
     // The digits differ in width, so pin each to a "0"-wide slot to stop
     // the clock shifting every second.
