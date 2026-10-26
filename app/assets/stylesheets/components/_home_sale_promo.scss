@@ -1,0 +1,50 @@
+// Slim clearance sale link at the top of the home feed.
+
+.home-sale-promo {
+  align-items: center;
+  background: var(--color-set-2-bg);
+  border: 2px solid var(--color-brand-yellow);
+  border-radius: 14px;
+  color: var(--color-space-text);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+
+  &:hover &__cta,
+  &:focus-visible &__cta {
+    filter: brightness(1.08);
+  }
+
+  &__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  &__eyebrow {
+    color: var(--color-red-450);
+    font-size: var(--font-size-xs);
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    font-weight: 800;
+  }
+
+  &__cta {
+    background: var(--color-brand-yellow);
+    border-radius: 999px;
+    color: var(--color-space-bg);
+    font-size: var(--font-size-s);
+    font-weight: 800;
+    padding: 0.35rem 0.9rem;
+    white-space: nowrap;
+  }
+}

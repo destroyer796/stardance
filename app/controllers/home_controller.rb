@@ -11,6 +11,7 @@ class HomeController < ApplicationController
     @body_class += " home-welcoming" if @welcoming
 
     load_composer if current_user.present?
+    load_clearance_sale if Flipper.enabled?(:shop_open, current_user) && Flipper.enabled?(:clearance_sale, current_user)
     if policy(BukuX3::Event).leaderboard?
       leaderboard = BukuX3::Leaderboard.new(BukuX3::Event.current)
       @buku_teams = leaderboard.teams
@@ -19,6 +20,13 @@ class HomeController < ApplicationController
   end
 
   private
+
+  # Only sales the visitor could buy from, using the region their shop prices use.
+  def load_clearance_sale
+    region = current_user ? ShopItem.recommended_region_for(current_user) : "US"
+    items = ShopItem.cached_shop_page_data[:buyable_standalone].select { |item| item.enabled_in_region?(region) }
+    @clearance_sale = Shop::ClearanceSale.new(items)
+  end
 
   def load_composer
     @devlog = Post::Devlog.new

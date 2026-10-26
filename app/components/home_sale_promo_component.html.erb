@@ -1,0 +1,7 @@
+<%= link_to helpers.shop_category_path(ShopCategory::SALE_SLUG), class: "home-sale-promo" do %>
+  <span class="home-sale-promo__copy">
+    <span class="home-sale-promo__eyebrow">Clearance sale on now</span>
+    <span class="home-sale-promo__title"><%= sale.title %> · up to <%= sale.top_percentage %>% off</span>
+  </span>
+  <span class="home-sale-promo__cta">Shop the sale →</span>
+<% end %>
