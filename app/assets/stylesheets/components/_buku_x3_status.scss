@@ -134,7 +134,12 @@
     // Exo 2's glyphs sit low in their line box; shift the padding so the
     // letters, not the box, are centred in the pill.
     .action-btn--small {
+      gap: var(--space-xxxs);
       padding-block: 2px 4px;
+    }
+
+    .action-btn__icon--leading {
+      margin-right: 0;
     }
   }
 

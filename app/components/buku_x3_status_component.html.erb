@@ -63,10 +63,10 @@
     <% if ctas? %>
       <div class="buku-x3-status__ctas">
         <% if ship_path %>
-          <%= render ActionButtonComponent.new(text: "Ship your project", href: ship_path, size: :small, variant: :primary) %>
+          <%= render ActionButtonComponent.new(text: "Ship your project", href: ship_path, leading_icon: "icons/rocket.png", size: :small, variant: :primary) %>
         <% end %>
         <% if (sale = live_sale) %>
-          <%= render ActionButtonComponent.new(text: "Shop the sale · up to #{sale.top_percentage}% off", href: helpers.shop_category_path(ShopCategory::SALE_SLUG), size: :small, variant: :secondary) %>
+          <%= render ActionButtonComponent.new(text: "Shop the sale · up to #{sale.top_percentage}% off", href: helpers.shop_category_path(ShopCategory::SALE_SLUG), leading_icon: "icons/cart.png", size: :small, variant: :secondary) %>
         <% end %>
       </div>
     <% end %>
