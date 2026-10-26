@@ -25,6 +25,9 @@ application.register("buku-activity-chart", BukuActivityChartController);
 import BukuLeaderboardNameController from "./buku_leaderboard_name_controller";
 application.register("buku-leaderboard-name", BukuLeaderboardNameController);
 
+import BukuLeaderboardPanelController from "./buku_leaderboard_panel_controller";
+application.register("buku-leaderboard-panel", BukuLeaderboardPanelController);
+
 import BulkSelectController from "./bulk_select_controller";
 application.register("bulk-select", BulkSelectController);
 
@@ -523,3 +526,6 @@ application.register("buku-x3-status", BukuX3StatusController);
 
 import WrongToolSheetController from "./wrong_tool_sheet_controller";
 application.register("wrong-tool-sheet", WrongToolSheetController);
+
+import StardanceFinaleController from "./stardance_finale_controller";
+application.register("stardance-finale", StardanceFinaleController);

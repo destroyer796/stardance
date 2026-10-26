@@ -40,6 +40,18 @@ class UserAgedOutTest < ActiveSupport::TestCase
     assert @user.should_reject_orders?
   end
 
+  test "a manual override of true lets aged-out users keep logging time" do
+    @user.update!(aged_out_on: Date.new(2026, 9, 1), ysws_eligible: false, manual_ysws_override: true)
+
+    refute @user.aged_out?
+    assert_nil @user.time_logging_cutoff
+    assert @user.eligible_for_shop?
+
+    @user.update!(manual_ysws_override: nil)
+    assert @user.aged_out?
+    assert_equal Time.zone.local(2026, 9, 1), @user.time_logging_cutoff
+  end
+
   test "an HCA refresh after turning 19 marks them aged out instead of rejecting orders" do
     @user.apply_hca_verification_payload!(
       { "verification_status" => "verified", "ysws_eligible" => false, "birthday" => BIRTHDAY.iso8601 }

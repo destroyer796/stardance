@@ -145,6 +145,15 @@
 
       <div class="settings-form__field">
         <label class="settings-form__checkbox">
+          <%= hidden_field_tag :countdown_enabled, "0", id: nil %>
+          <%= check_box_tag :countdown_enabled, "1", preference.countdown_enabled?, id: "countdown_enabled" %>
+          <span>Show countdown</span>
+        </label>
+        <small class="settings-form__hint">The clock on the home page counting down to the end of Stardance</small>
+      </div>
+
+      <div class="settings-form__field">
+        <label class="settings-form__checkbox">
           <%= hidden_field_tag :platform_ads_enabled, "0", id: nil %>
           <%= check_box_tag :platform_ads_enabled, "1", preference.platform_ads_enabled?, id: "platform_ads_enabled" %>
           Show program ads

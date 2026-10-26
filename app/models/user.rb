@@ -169,10 +169,12 @@ class User < ApplicationRecord
 
   # Signed up at 13-18 and has since turned 19. They keep their account so they
   # can ship what they already built and spend the stardust they already have,
-  # but Hackatime time logged after their 19th birthday doesn't count.
-  def aged_out? = aged_out_on.present?
+  # but Hackatime time logged after their 19th birthday doesn't count. A manual
+  # YSWS override of true lets them keep logging time as before; aged_out_on is
+  # still recorded so the cutoff comes back if the override is removed.
+  def aged_out? = aged_out_on.present? && manual_ysws_override != true
 
-  def time_logging_cutoff = aged_out_on&.beginning_of_day
+  def time_logging_cutoff = aged_out? ? aged_out_on.beginning_of_day : nil
 
   # The day they turned 19, if they onboarded at 13-18 and are 19 or older now.
   def turned_19_on(birthday)

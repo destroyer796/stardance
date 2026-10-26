@@ -59,7 +59,7 @@ class SessionsControllerAgedOutTest < ActionDispatch::IntegrationTest
     assert_not user.reload.aged_out?
   end
 
-  test "an admin override still gets the time cutoff" do
+  test "an admin override skips the time cutoff" do
     user = onboarded_user(signed_up: 1.year.ago, age_attestation: "ineligible")
     user.update!(manual_ysws_override: true)
     birthday = 19.years.ago.to_date - 1.day
@@ -67,7 +67,10 @@ class SessionsControllerAgedOutTest < ActionDispatch::IntegrationTest
     hca_sign_in(birthday: birthday)
 
     assert_equal user.id, session[:user_id]
-    assert_equal birthday + 19.years, user.reload.aged_out_on
+    user.reload
+    assert_equal birthday + 19.years, user.aged_out_on
+    assert_not user.aged_out?
+    assert_nil user.time_logging_cutoff
   end
 
   private
