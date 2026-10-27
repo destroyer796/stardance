@@ -166,6 +166,15 @@ export default class DoorSounds {
     this.noise({ dur: 0.04, gain: 0.4, freq: 3000, q: 2 });
   }
 
+  // Pausing the ad holds every sound mid-note, and playing picks them up again.
+  suspend() {
+    this.ctx?.suspend();
+  }
+
+  resume() {
+    this.ctx?.resume();
+  }
+
   close() {
     this.ctx?.close();
   }

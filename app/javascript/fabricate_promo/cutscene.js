@@ -282,6 +282,7 @@ export default class Cutscene {
     setTimeout(() => {
       this.sounds.clang();
       this.door.dust.dislodge(200);
+      this.door.dust.settle();
       this.door.shake(800, 26);
     }, 420);
   }

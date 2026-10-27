@@ -13,6 +13,3 @@
 import timeline from "./timeline.json";
 
 export default timeline;
-
-// A duration from the timeline, in real milliseconds at the current speed.
-export const scaled = (ms) => ms / timeline.speed;

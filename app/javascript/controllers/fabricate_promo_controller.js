@@ -3,8 +3,7 @@ import BlastDoor from "../fabricate_promo/blast_door";
 import Cutscene from "../fabricate_promo/cutscene";
 import DoorSounds from "../fabricate_promo/door_sounds";
 import RocketStrike from "../fabricate_promo/rocket_strike";
-import Shatter from "../fabricate_promo/shatter";
-import timeline from "../fabricate_promo/timeline";
+import StrikeShow from "../fabricate_promo/strike_show";
 
 export default class extends Controller {
   static targets = ["card", "door"];
@@ -90,11 +89,23 @@ export default class extends Controller {
       // Don't retry: the server may have counted a request whose response failed.
     });
     await this.play();
-    window.location.assign(this.urlValue);
+    // Unless the show was torn down partway, by leaving the page say.
+    if (this.launching) window.location.assign(this.urlValue);
   }
 
   // The whole show, from the button going down to the door opening on Fabricate.
   async play() {
+    this.stage();
+    if (this.cutscene) {
+      await this.cutscene.play();
+    } else {
+      await this.show.prepare();
+      await this.show.play();
+    }
+  }
+
+  // Puts the show up over the page without starting it.
+  stage() {
     this.launching = true;
     this.calm();
     this.cardTarget.classList.add("fabricate-promo__card--pressed");
@@ -109,35 +120,15 @@ export default class extends Controller {
       this.cutscene.lock();
     }
     this.door.mount();
-    if (this.cutscene) {
-      await this.cutscene.play();
-    } else {
+    if (!this.cutscene) {
       // The rocket comes down on the page and smashes it, and the doors slam shut while the
       // pieces are still falling.
       this.warm();
-      this.strike = new RocketStrike(this.clip);
-      if (this.strike.supported) {
-        this.shatter = new Shatter(RocketStrike.impact);
-        this.strike.mount(this.door.overlay);
-        this.shatter.mount(this.door.overlay);
-        let doorway;
-        const { cues } = timeline;
-        await this.strike.run([
-          {
-            at: cues.crack,
-            run: () => {
-              this.shatter.crack();
-              navigator.vibrate?.([200, 60, 120]);
-            },
-          },
-          { at: cues.shatterSound, run: () => this.sounds.play("shatter") },
-          { at: cues.fall, run: () => this.shatter.fall() },
-          { at: cues.doors, run: () => (doorway = this.door.run()) },
-        ]);
-        await doorway;
-      } else {
-        await this.door.run();
-      }
+      this.show = new StrikeShow({
+        door: this.door,
+        sounds: this.sounds,
+        clip: this.clip,
+      });
     }
   }
 
@@ -146,17 +137,10 @@ export default class extends Controller {
     this.calm();
     if (!this.launching) return;
     this.cutscene?.destroy();
-    this.shatter?.destroy();
-    this.strike?.destroy();
+    this.show?.destroy();
     this.door?.destroy();
     this.sounds?.close();
-    this.cutscene =
-      this.shatter =
-      this.strike =
-      this.door =
-      this.sounds =
-      this.clip =
-        null;
+    this.cutscene = this.show = this.door = this.sounds = this.clip = null;
     this.cardTarget.classList.remove("fabricate-promo__card--pressed");
     this.launching = false;
   }

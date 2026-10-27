@@ -1,10 +1,16 @@
 // The Fabricate ad's toothed blast door at full screen. It stamps out the widget's door template,
 // starts with both leaves slid out of sight, slams them shut over the page, shakes the screen and
 // the dust loose, throws the bolts, and opens again on Fabricate's landing page.
+//
+// The door is drawn from a time, in seconds since it started closing (see `at`), so it can be
+// played, paused and scrubbed as part of a sequence. Its sounds are `events` on that same clock.
 import Dust from "./dust";
-import timeline, { scaled } from "./timeline";
+import Sequence from "./sequence";
+import timeline from "./timeline";
 
 const MAX_DPR = 2;
+const DUST_STEP = 1 / 60;
+const BOLT_JOLT_PX = 5;
 
 export default class BlastDoor {
   constructor(template, sounds) {
@@ -19,6 +25,7 @@ export default class BlastDoor {
     const canvas = document.createElement("canvas");
     canvas.className = "fabricate-promo__dust";
     this.dust = new Dust(canvas);
+    this.dustTime = 0;
     this.overlay.append(this.door, canvas);
   }
 
@@ -29,69 +36,122 @@ export default class BlastDoor {
       window.innerHeight,
       Math.min(window.devicePixelRatio || 1, MAX_DPR),
     );
-    this.running = true;
-    let last;
-    const frame = (now) => {
-      if (!this.running) return;
-      const dt = last == null ? 0 : Math.min(0.05, (now - last) / 1000);
-      last = now;
-      this.dust.step(dt);
-      this.dust.draw();
-      requestAnimationFrame(frame);
-    };
-    requestAnimationFrame(frame);
+  }
+
+  // The door's beats, in seconds since it started closing.
+  get beats() {
+    const { closeMs, settleMs, bolts, boltMs, openMs } = timeline.door;
+    const shut = closeMs / 1000;
+    const unlocking = shut + settleMs / 1000;
+    const opening = unlocking + (bolts * boltMs) / 1000;
+    return { shut, unlocking, opening, opened: opening + openMs / 1000 };
+  }
+
+  get length() {
+    return this.beats.opened;
+  }
+
+  // The door as it stands `time` seconds after it started closing.
+  at(time) {
+    const { shut, unlocking, opening, opened } = this.beats;
+    const { shakeMs, shakePx, bolts, boltMs } = timeline.door;
+    let gap = 1;
+    if (time < 0) gap = 1;
+    else if (time < shut) gap = 1 - easeIn(clamp(time / shut));
+    else if (time < opening) gap = 0;
+    else gap = easeInOut(clamp((time - opening) / (opened - opening)));
+    this.setGap(gap);
+    // Fabricate is behind the door once the leaves have met.
+    this.door.classList.toggle("fabricate-door--hollow", time < shut);
+
+    let jolt = joltAt(time - shut, shakeMs / 1000, shakePx);
+    for (let bolt = 0; bolt < bolts; bolt++) {
+      const thrown = unlocking + (bolt * boltMs) / 1000;
+      jolt = addJolts(
+        jolt,
+        joltAt(time - thrown, (boltMs * 0.7) / 1000, BOLT_JOLT_PX),
+      );
+    }
+    applyJolt(this.overlay, jolt);
+    this.dustAt(time);
+  }
+
+  // Replays the dust up to `time`: forwards it just carries on, backwards it starts over.
+  dustAt(time) {
+    const { shut, opening } = this.beats;
+    if (time < this.dustTime) {
+      this.dust.reset();
+      this.dustTime = 0;
+    }
+    const kicks = [
+      {
+        at: shut,
+        run: () => {
+          this.dust.dislodge(450);
+          this.dust.burst(window.innerWidth / 2, 30);
+        },
+      },
+      { at: opening, run: () => this.dust.burst(window.innerWidth / 2, 8) },
+    ];
+    while (this.dustTime + DUST_STEP <= time) {
+      for (const kick of kicks)
+        if (kick.at >= this.dustTime && kick.at < this.dustTime + DUST_STEP)
+          kick.run();
+      this.dust.step(DUST_STEP);
+      this.dustTime += DUST_STEP;
+    }
+    this.dust.draw();
+  }
+
+  // The door's sounds, in seconds since it started closing. Lengths are scaled to the current
+  // speed as each one plays.
+  get events() {
+    const { shut, unlocking, opening, opened } = this.beats;
+    const { bolts, boltMs, pipeDelayMs } = timeline.door;
+    const scaled = (s) => s / timeline.speed;
+    return [
+      { at: 0, run: () => this.sounds.rumble(scaled(shut)) },
+      {
+        at: shut,
+        run: () => {
+          this.sounds.clang();
+          navigator.vibrate?.([120, 40, 60]);
+        },
+      },
+      { at: shut + pipeDelayMs / 1000, run: () => this.sounds.play("pipe") },
+      ...Array.from({ length: bolts }, (_, bolt) => ({
+        at: unlocking + (bolt * boltMs) / 1000,
+        run: () => this.sounds.clunk(),
+      })),
+      { at: opening, run: () => this.sounds.hiss(0, scaled(1.2)) },
+      { at: opening, run: () => this.sounds.rumble(scaled(opened - opening)) },
+    ];
   }
 
   setGap(gap) {
     this.door.style.setProperty("--fabricate-door-gap", gap);
   }
 
-  async run() {
-    await this.slam();
-    await this.unlock();
-    await this.open();
+  // Real-time playback of the door on its own, a beat at a time, for the cutscene.
+  slam() {
+    return this.playBetween(0, this.beats.unlocking);
   }
 
-  async slam() {
-    const { closeMs, settleMs, pipeDelayMs } = timeline.door;
-    this.sounds.rumble(scaled(closeMs) / 1000);
-    this.pipe = setTimeout(
-      () => this.sounds.play("pipe"),
-      scaled(closeMs + pipeDelayMs),
-    );
-    await animate(scaled(closeMs), (u) => this.setGap(1 - easeIn(u)));
-    this.impact();
-    await wait(scaled(settleMs));
+  unlock() {
+    return this.playBetween(this.beats.unlocking, this.beats.opening);
   }
 
-  // The leaves meet: clang, shake, and everything loose comes down. Fabricate is behind the door
-  // from here on.
-  impact() {
-    const { shakeMs, shakePx } = timeline.door;
-    this.sounds.clang();
-    this.door.classList.remove("fabricate-door--hollow");
-    this.dust.dislodge(450);
-    this.dust.burst(window.innerWidth / 2, 30);
-    this.shake(scaled(shakeMs), shakePx);
-    navigator.vibrate?.([120, 40, 60]);
+  open() {
+    return this.playBetween(this.beats.opening, this.beats.opened);
   }
 
-  // The locking bolts throw one at a time, each jolting the door, then the seal vents.
-  async unlock() {
-    const { bolts, boltMs } = timeline.door;
-    for (let bolt = 0; bolt < bolts; bolt++) {
-      this.sounds.clunk();
-      this.shake(scaled(boltMs) * 0.7, 5);
-      await wait(scaled(boltMs));
-    }
-    this.sounds.hiss(0, 1.2);
-    this.dust.burst(window.innerWidth / 2, 8);
-  }
-
-  async open() {
-    const { openMs } = timeline.door;
-    this.sounds.rumble(scaled(openMs) / 1000);
-    await animate(scaled(openMs), (u) => this.setGap(easeInOut(u)));
+  playBetween(from, to) {
+    return new Sequence({
+      from,
+      to,
+      render: (time) => this.at(time),
+      events: this.events,
+    }).play();
   }
 
   shake(ms, px) {
@@ -99,22 +159,30 @@ export default class BlastDoor {
   }
 
   destroy() {
-    this.running = false;
-    clearTimeout(this.pipe);
     this.overlay.remove();
   }
 }
 
-// Jolts `element` about, dying away over `ms`. Only ever pass something inside the fixed overlay:
-// moving the page itself pushes it past the viewport and flashes the scrollbars.
+// How far a jolt `elapsed` seconds into it has thrown things, dying away over `duration`. The
+// wobble is hashed from the time, so the same moment always shakes the same way.
+export function joltAt(elapsed, duration, px) {
+  if (elapsed < 0 || elapsed >= duration) return { x: 0, y: 0 };
+  const amount = px * (1 - elapsed / duration) ** 2;
+  const frame = Math.floor(elapsed * 60);
+  return { x: noise(frame) * amount, y: noise(frame + 7919) * amount };
+}
+
+export function applyJolt(element, { x, y }) {
+  element.style.transform =
+    x || y ? `translate(${x}px, ${y}px) rotate(${x * 0.02}deg)` : "";
+}
+
+// Jolts `element` about in real time, dying away over `ms`. Only ever pass something inside the
+// fixed overlay: moving the page itself pushes it past the viewport and flashes the scrollbars.
 export function shake(element, ms, px) {
-  return animate(ms, (u) => {
-    const amount = px * (1 - u) ** 2;
-    const x = (Math.random() - 0.5) * 2 * amount;
-    const y = (Math.random() - 0.5) * 2 * amount;
-    element.style.transform =
-      u < 1 ? `translate(${x}px, ${y}px) rotate(${x * 0.02}deg)` : "";
-  });
+  return animate(ms, (u) =>
+    applyJolt(element, joltAt((u * ms) / 1000, ms / 1000, px)),
+  );
 }
 
 export function animate(ms, step) {
@@ -132,5 +200,11 @@ export function animate(ms, step) {
 }
 
 export const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const clamp = (u) => Math.min(1, Math.max(0, u));
+const addJolts = (a, b) => ({ x: a.x + b.x, y: a.y + b.y });
+const noise = (n) => {
+  const s = Math.sin(n * 12.9898) * 43758.5453;
+  return (s - Math.floor(s)) * 2 - 1;
+};
 const easeIn = (t) => t * t * t;
 const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);

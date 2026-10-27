@@ -1,15 +1,24 @@
 // What the slam knocks loose, drawn on a 2D canvas in CSS pixels: grit and chips raining from the
 // lintel, soft dust clouds rolling out of the seam, and sparks where the leaves bit together.
+//
+// Its dice are seeded, so the same events played from a reset always kick up the same dust. That
+// lets the door replay it to any moment when the ad is scrubbed.
 const GRAVITY = 1400;
 const GRIT = ["#d6c9b0", "#b8a98f", "#8a7a66", "#5b4a3a"];
 const CLOUD = "rgb(205 195 175 / 0.5)";
 const SPARK = "#f1c40f";
+const SEED = 1009;
 
 export default class Dust {
   constructor(canvas) {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
+    this.reset();
+  }
+
+  reset() {
     this.particles = [];
+    this.random = seeded(SEED);
   }
 
   resize(width, height, dpr) {
@@ -23,25 +32,25 @@ export default class Dust {
   // Shake debris loose all along the top edge.
   dislodge(count) {
     for (let i = 0; i < count; i++) {
-      const chunk = Math.random() < 0.08;
+      const chunk = this.random() < 0.08;
       this.particles.push({
         kind: "grit",
-        x: Math.random() * this.width,
-        y: -10 + Math.random() * 20,
-        vx: (Math.random() - 0.5) * 60,
-        vy: Math.random() * 120,
-        size: chunk ? 6 + Math.random() * 8 : 1.5 + Math.random() * 3,
-        spin: (Math.random() - 0.5) * 12,
-        angle: Math.random() * Math.PI,
-        color: GRIT[Math.floor(Math.random() * GRIT.length)],
-        delay: Math.random() * 0.5,
+        x: this.random() * this.width,
+        y: -10 + this.random() * 20,
+        vx: (this.random() - 0.5) * 60,
+        vy: this.random() * 120,
+        size: chunk ? 6 + this.random() * 8 : 1.5 + this.random() * 3,
+        spin: (this.random() - 0.5) * 12,
+        angle: this.random() * Math.PI,
+        color: GRIT[Math.floor(this.random() * GRIT.length)],
+        delay: this.random() * 0.5,
         life: 3,
         age: 0,
       });
     }
     // A haze sifting down with it.
     for (let i = 0; i < count / 20; i++)
-      this.cloud(Math.random() * this.width, 0, 0, 40 + Math.random() * 60);
+      this.cloud(this.random() * this.width, 0, 0, 40 + this.random() * 60);
   }
 
   // Puff dust out of the seam at x, both ways along the floor and up the join.
@@ -50,17 +59,17 @@ export default class Dust {
       const side = i % 2 ? 1 : -1;
       this.cloud(
         x,
-        Math.random() * this.height,
-        side * (60 + Math.random() * 240),
-        (Math.random() - 0.5) * 40,
+        this.random() * this.height,
+        side * (60 + this.random() * 240),
+        (this.random() - 0.5) * 40,
       );
       this.particles.push({
         kind: "spark",
         x,
-        y: Math.random() * this.height,
-        vx: side * (200 + Math.random() * 600),
-        vy: -200 - Math.random() * 400,
-        life: 0.3 + Math.random() * 0.4,
+        y: this.random() * this.height,
+        vx: side * (200 + this.random() * 600),
+        vy: -200 - this.random() * 400,
+        life: 0.3 + this.random() * 0.4,
         delay: 0,
         age: 0,
       });
@@ -74,15 +83,26 @@ export default class Dust {
       y,
       vx,
       vy,
-      size: 30 + Math.random() * 60,
-      life: 1.5 + Math.random() * 1.5,
-      delay: Math.random() * 0.2,
+      size: 30 + this.random() * 60,
+      life: 1.5 + this.random() * 1.5,
+      delay: this.random() * 0.2,
       age: 0,
     });
   }
 
-  get settled() {
-    return this.particles.length === 0;
+  // Plays out whatever is loose in real time, for dust kicked up outside the door's sequence.
+  settle() {
+    if (this.settling) return;
+    this.settling = true;
+    let last;
+    const frame = (now) => {
+      this.step(last == null ? 0 : Math.min(0.05, (now - last) / 1000));
+      last = now;
+      this.draw();
+      if (this.particles.length) requestAnimationFrame(frame);
+      else this.settling = false;
+    };
+    requestAnimationFrame(frame);
   }
 
   step(dt) {
@@ -138,4 +158,15 @@ export default class Dust {
     }
     ctx.globalAlpha = 1;
   }
+}
+
+// mulberry32: a small, fast seeded random number generator.
+function seeded(seed) {
+  let state = seed;
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }

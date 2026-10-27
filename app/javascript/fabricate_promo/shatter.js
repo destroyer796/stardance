@@ -2,8 +2,10 @@
 // fanning out from the impact, so when the copies crack apart and fall it looks like the page
 // itself breaking. The copies are taken up front, while the clip is still loading, and stay hidden
 // over the real page until the rocket lands.
-import { animate, shake } from "./blast_door";
-import timeline, { scaled } from "./timeline";
+//
+// Like the door, it's drawn from a time (`at`), in seconds into the strike, so it can be scrubbed.
+import { applyJolt, joltAt } from "./blast_door";
+import timeline from "./timeline";
 
 const SVG = "http://www.w3.org/2000/svg";
 
@@ -137,30 +139,27 @@ export default class Shatter {
       scroll(element, element.dataset.fabricateScroll);
   }
 
-  // The rocket lands: the copies go up over the page and the cracks race out from the impact.
-  crack() {
-    const { crackMs, shakeMs, shakePx } = timeline.shatter;
-    this.layer.classList.add("fabricate-shatter--cracked");
-    shake(this.pieces, scaled(shakeMs), shakePx);
-    const paths = this.layer.querySelectorAll(
+  // The shattered page `time` seconds into the strike. Until the crack it's hidden over the real
+  // page; then the cracks race out from the impact, the pieces shake, and from the fall they fly
+  // apart under gravity.
+  at(time) {
+    const { crack, fall } = timeline.cues;
+    const { crackMs, fallMs, shakeMs, shakePx, gravity } = timeline.shatter;
+    this.layer.classList.toggle("fabricate-shatter--cracked", time >= crack);
+    const drawn = crackMs ? (time - crack) / (crackMs / 1000) : 1;
+    this.paths ??= this.layer.querySelectorAll(
       ".fabricate-shatter__cracks path",
     );
-    return animate(scaled(crackMs), (u) => {
-      for (const path of paths) path.style.strokeDashoffset = 1 - u;
-    });
-  }
+    for (const path of this.paths)
+      path.style.strokeDashoffset = 1 - Math.min(1, Math.max(0, drawn));
+    applyJolt(this.pieces, joltAt(time - crack, shakeMs / 1000, shakePx));
 
-  // Slowed down along with everything else, so the shards fly the same arcs at any speed.
-  fall() {
-    const { fallMs, gravity } = timeline.shatter;
-    return animate(scaled(fallMs), (u) => {
-      const t = (u * fallMs) / 1000;
-      for (const { element, vx, vy, spin } of this.shards) {
-        const x = vx * t;
-        const y = vy * t + (gravity * t * t) / 2;
-        element.style.transform = `translate(${x}px, ${y}px) rotate(${spin * t}deg)`;
-      }
-    });
+    const t = Math.min(Math.max(0, time - fall), fallMs / 1000);
+    for (const { element, vx, vy, spin } of this.shards) {
+      const x = vx * t;
+      const y = vy * t + (gravity * t * t) / 2;
+      element.style.transform = `translate(${x}px, ${y}px) rotate(${spin * t}deg)`;
+    }
   }
 
   destroy() {

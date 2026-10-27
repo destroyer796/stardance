@@ -10,6 +10,8 @@ const MAX_DPR = 2;
 // Where the ground the rocket hits sits in the clip.
 const GROUND = 0.83;
 const LOAD_TIMEOUT_MS = 2000;
+// How far the clip may wander from the sequence's clock before it's pulled back.
+const DRIFT_S = 0.12;
 
 // Anything clearly greener than it is red or blue goes transparent, with a soft edge, and what's
 // left has its green pulled down to the average of red and blue, so neither the smoke nor the
@@ -74,6 +76,9 @@ export default class RocketStrike {
     this.canvas.width = Math.round(window.innerWidth * dpr);
     this.canvas.height = Math.round(window.innerHeight * dpr);
     this.setUpShader();
+    // A paused seek only lands a moment later; show the frame once it has.
+    this.redraw = () => this.draw();
+    this.video.addEventListener("seeked", this.redraw);
   }
 
   setUpShader() {
@@ -116,6 +121,7 @@ export default class RocketStrike {
   // never lifted, so the explosion can't land off the bottom.
   placeClip() {
     const { canvas, video } = this;
+    if (!video.videoWidth) return;
     const scale = Math.max(
       canvas.width / video.videoWidth,
       canvas.height / video.videoHeight,
@@ -134,36 +140,36 @@ export default class RocketStrike {
     );
   }
 
-  // Plays the clip and fires each cue ({ at, run }, `at` in seconds into the clip) as the clip
-  // reaches it. Resolves once they've all fired; the clip keeps playing until it's destroyed.
-  async run(cues) {
-    await this.ready();
+  // While the clip is rolling it keeps the time, so the show never runs ahead of a clip that's
+  // still loading or stuttering. Null once it's paused or done.
+  get clock() {
+    const { video } = this;
+    return video.paused || video.ended ? null : video.currentTime;
+  }
+
+  // The clip `time` seconds in. While playing it runs on its own and keeps the time (see `clock`),
+  // so it's only moved when the show is sought; paused, it's sought to the exact frame.
+  at(time, playing) {
+    const { video } = this;
+    const clipTime = Math.min(time, video.duration || time);
+    if (playing && time < video.duration) {
+      video.playbackRate = timeline.speed;
+      if (Math.abs(video.currentTime - clipTime) > DRIFT_S)
+        video.currentTime = clipTime;
+      if (video.paused) video.play().catch(() => {});
+    } else {
+      video.pause();
+      if (Math.abs(video.currentTime - clipTime) > 1 / 120)
+        video.currentTime = clipTime;
+    }
     this.placeClip();
-    this.video.playbackRate = timeline.speed;
-    await this.video.play();
-    this.running = true;
-    const pending = [...cues];
-    return new Promise((resolve) => {
-      const frame = () => {
-        if (!this.running) return;
-        this.draw();
-        this.fade();
-        const time = this.video.ended ? Infinity : this.video.currentTime;
-        for (const cue of pending.filter(({ at }) => time >= at)) {
-          pending.splice(pending.indexOf(cue), 1);
-          cue.run();
-        }
-        if (!pending.length) resolve();
-        requestAnimationFrame(frame);
-      };
-      requestAnimationFrame(frame);
-    });
+    this.fade(time);
+    this.draw();
   }
 
   // The clip's picture and sound each fade in from the start and out from their own cue.
-  fade() {
+  fade(time) {
     const { clip, volume } = timeline;
-    const time = this.video.currentTime;
     this.canvas.style.opacity = envelope(
       time,
       clip.fadeInMs,
@@ -200,7 +206,7 @@ export default class RocketStrike {
   }
 
   destroy() {
-    this.running = false;
+    this.video.removeEventListener("seeked", this.redraw);
     this.video.pause();
     this.canvas.remove();
   }
