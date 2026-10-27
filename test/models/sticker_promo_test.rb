@@ -34,8 +34,17 @@ class StickerPromoTest < ActiveSupport::TestCase
     assert_equal [ 1 ], @user.free_sticker_weeks
   end
 
+  test "the final week runs Monday to Saturday Eastern, ending with Stardance" do
+    eastern = Time.find_zone!("America/New_York")
+    ship_at(eastern.local(2026, 10, 25, 23, 59))
+    ship_at(eastern.local(2026, 10, 26, 0, 1))
+
+    assert_equal [ 4 ], @user.free_sticker_weeks
+    assert_equal Rails.application.config.stardance_ends_at, StickerPromo::DEADLINE
+  end
+
   test "a week defaults to opening seven days before its deadline" do
-    week = StickerPromo::WEEKS.last
+    week = StickerPromo::WEEKS.find { |w| w.number == 3 }
 
     assert_equal week.deadline - 7.days, week.window_start
   end

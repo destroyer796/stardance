@@ -24,7 +24,10 @@ class StickerPromo
     # weeks don't both claim the 24 hours they were originally live for.
     Week.new(number: 2, deadline: Time.new(2026, 7, 6, 4, 59, 0, "+00:00"), label: "THIS SUNDAY (July 5th, 11:59 PM EST)",
              window_start: Time.new(2026, 6, 30, 4, 59, 0, "+00:00")),
-    Week.new(number: 3, deadline: Time.new(2026, 7, 20, 4, 59, 0, "+00:00"), label: "THIS SUNDAY (July 19th, 11:59 PM EST)")
+    Week.new(number: 3, deadline: Time.new(2026, 7, 20, 4, 59, 0, "+00:00"), label: "THIS SUNDAY (July 19th, 11:59 PM EST)"),
+    # The final week runs Monday to Saturday, closing when Stardance ends.
+    Week.new(number: 4, deadline: Rails.application.config.stardance_ends_at, label: "THIS SATURDAY (October 31st, 11:59 PM ET)",
+             window_start: Time.find_zone!("America/New_York").local(2026, 10, 26))
   ].freeze
 
   CURRENT_WEEK = WEEKS.last
