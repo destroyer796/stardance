@@ -13,7 +13,7 @@ module DiscoverRail
       false
     end
 
-    URL = "https://fabricate.hackclub.com/?utm_source=stardance&utm_medium=discover_rail"
+    URL = "https://fabricate.hackclub.com/home?utm_source=stardance&utm_medium=discover_rail"
     # Ahoy event recorded by PromosController#fabricate on every click.
     CLICK_EVENT = "fabricate_promo_clicked"
   end

@@ -172,89 +172,9 @@
   }
 }
 
-// The siren that goes off while the pointer is over the button: a beacon at the top of the screen
-// sweeping two red beams round, over a pulsing red wash across the whole site.
-@property --fabricate-alarm-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
-.fabricate-alarm {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 200ms ease-out;
-
-  &--on {
-    opacity: 1;
-  }
-
-  &__wash {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(
-      ellipse at 50% 0,
-      rgb(255 40 60 / 45%),
-      rgb(170 0 20 / 30%)
-    );
-    mix-blend-mode: hard-light;
-    animation: fabricate-alarm-pulse 700ms ease-in-out infinite alternate;
-  }
-
-  &__beams {
-    position: absolute;
-    inset: 0;
-    background: conic-gradient(
-      from var(--fabricate-alarm-angle) at 50% 0,
-      transparent,
-      rgb(255 70 80 / 50%) 15deg,
-      transparent 30deg 180deg,
-      rgb(255 70 80 / 50%) 195deg,
-      transparent 210deg
-    );
-    mix-blend-mode: screen;
-    animation: fabricate-alarm-spin 1100ms linear infinite;
-  }
-
-  &__beacon {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 64px;
-    height: 34px;
-    border-radius: 0 0 32px 32px;
-    background: radial-gradient(
-      ellipse at 50% 30%,
-      #ffd0d6,
-      #ff3049 45%,
-      #a8001a
-    );
-    box-shadow:
-      0 0 30px 12px rgb(255 40 60 / 70%),
-      inset 0 -4px 0 rgb(0 0 0 / 30%);
-    translate: -50% 0;
-    animation: fabricate-alarm-pulse 350ms ease-in-out infinite alternate;
-  }
-}
-
-@keyframes fabricate-alarm-pulse {
-  from {
-    opacity: 0.55;
-  }
-}
-
-@keyframes fabricate-alarm-spin {
-  to {
-    --fabricate-alarm-angle: 360deg;
-  }
-}
-
 // The page the rocket hit, broken into shards that are each a frozen copy of the site clipped to
-// their own wedge. They crack apart from the impact and fall away into the dark while the door
-// closes.
+// their own wedge. They crack apart from the shatter's origin and fall away into the dark while
+// the door closes.
 .fabricate-shatter {
   position: absolute;
   inset: 0;

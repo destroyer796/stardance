@@ -115,7 +115,7 @@ export default class Shatter {
 
     copy
       .querySelectorAll(
-        "script, iframe, turbo-frame[src], turbo-cable-stream-source, .fabricate-promo__overlay, .fabricate-alarm",
+        "script, iframe, turbo-frame[src], turbo-cable-stream-source, .fabricate-promo__overlay",
       )
       .forEach((element) => element.remove());
     for (const element of [copy, ...copy.querySelectorAll("*")]) {

@@ -40,32 +40,6 @@ export default class extends Controller {
     });
   }
 
-  // The siren goes off while a mouse is over the button itself.
-  alarm(event) {
-    if (this.reduceMotion || this.launching || event.pointerType === "touch")
-      return;
-    if (!this.siren) {
-      this.siren = document.createElement("div");
-      this.siren.className = "fabricate-alarm";
-      this.siren.setAttribute("aria-hidden", "true");
-      this.siren.innerHTML = `
-        <div class="fabricate-alarm__wash"></div>
-        <div class="fabricate-alarm__beams"></div>
-        <div class="fabricate-alarm__beacon"></div>
-      `;
-      document.body.append(this.siren);
-    }
-    // Next frame, so a freshly added siren fades in rather than popping on.
-    requestAnimationFrame(() =>
-      this.siren?.classList.add("fabricate-alarm--on"),
-    );
-  }
-
-  calm() {
-    this.siren?.remove();
-    this.siren = null;
-  }
-
   async launch(event) {
     if (this.reduceMotion) return;
     if (
@@ -107,7 +81,6 @@ export default class extends Controller {
   // Puts the show up over the page without starting it.
   stage() {
     this.launching = true;
-    this.calm();
     this.cardTarget.classList.add("fabricate-promo__card--pressed");
     this.sounds = new DoorSounds({
       shatter: this.shatterSoundValue,
@@ -134,7 +107,6 @@ export default class extends Controller {
 
   // Coming back through the back/forward cache restores the page mid-strike.
   reset() {
-    this.calm();
     if (!this.launching) return;
     this.cutscene?.destroy();
     this.show?.destroy();
