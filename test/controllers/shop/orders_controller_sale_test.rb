@@ -6,6 +6,7 @@ class Shop::OrdersControllerSaleTest < ActionDispatch::IntegrationTest
   IDENTITY = { "addresses" => [ US_ADDRESS ], "phone_number" => "+15551234567" }.freeze
 
   setup do
+    Flipper.enable(:clearance_sale)
     @user = create_user(slack_id: "U-sale-checkout", display_name: "salecheckout", verified: true)
     @user.update!(has_gotten_free_stickers: true)
     @user.ledger_entries.create!(amount: 1_000, reason: "test grant", ledgerable: @user, created_by: "test")
@@ -15,6 +16,10 @@ class Shop::OrdersControllerSaleTest < ActionDispatch::IntegrationTest
     @item.image.attach(io: StringIO.new(Base64.decode64(PIXEL)), filename: "px.png", content_type: "image/png")
     @item.save!
     sign_in @user
+  end
+
+  teardown do
+    Flipper.disable(:clearance_sale)
   end
 
   test "checking out at the discount the buyer saw charges that price" do
