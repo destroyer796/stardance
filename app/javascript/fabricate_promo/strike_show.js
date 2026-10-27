@@ -19,6 +19,14 @@ export default class StrikeShow {
       this.strike.mount(door.overlay);
       this.shatter.mount(door.overlay);
     }
+    this.sequence = new Sequence({
+      to: () => this.length,
+      render: (time, playing) => this.at(time, playing),
+      events: () => this.events,
+      follow: () => this.shatter && this.strike.clock,
+      onPlay: () => this.sounds.resume(),
+      onPause: () => this.sounds.suspend(),
+    });
   }
 
   // When the door starts closing, in seconds into the show.
@@ -29,14 +37,6 @@ export default class StrikeShow {
   // Waits for the clip, then draws the first frame. Call `play()` or `seek()` from there.
   async prepare() {
     if (this.shatter) await this.strike.ready();
-    this.sequence = new Sequence({
-      to: () => this.length,
-      render: (time, playing) => this.at(time, playing),
-      events: () => this.events,
-      follow: () => this.shatter && this.strike.clock,
-      onPlay: () => this.sounds.resume(),
-      onPause: () => this.sounds.suspend(),
-    });
     this.sequence.seek(0);
   }
 
@@ -97,7 +97,7 @@ export default class StrikeShow {
   }
 
   destroy() {
-    this.sequence?.pause();
+    this.sequence.pause();
     this.shatter?.destroy();
     this.strike.destroy();
   }
