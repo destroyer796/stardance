@@ -4,7 +4,7 @@
 # the shop's clearance banner and the home page countdown so they agree.
 class Shop::ClearanceSale
   def initialize(items)
-    @live = items.select(&:on_sale?)
+    @live = items.select { |item| item.clearance_sale? && item.on_sale? }
     @upcoming = items.select(&:sale_upcoming?)
   end
 

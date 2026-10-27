@@ -5,9 +5,43 @@ class ShopItemSaleTest < ActiveSupport::TestCase
   US_ADDRESS = { "country" => "US", "primary" => true }.freeze
 
   setup do
+    Flipper.enable(:clearance_sale)
     @buyer = create_user(slack_id: "U-sale-buyer", display_name: "salebuyer", verified: true)
     @buyer.update!(has_gotten_free_stickers: true)
     @buyer.ledger_entries.create!(amount: 10_000, reason: "test grant", ledgerable: @buyer, created_by: "test")
+  end
+
+  teardown do
+    Flipper.disable(:clearance_sale)
+  end
+
+  test "a clearance sale set up ahead of time waits for the flag" do
+    Flipper.disable(:clearance_sale)
+    item = build_item(sale_name: "Hardware Day", sale_percentage: 50, sale_starts_at: 1.hour.ago, sale_ends_at: 1.hour.from_now)
+
+    assert_not item.on_sale?
+    assert_equal 100, item.price_for_region("US")
+    assert_equal 100, buy(item).frozen_item_price, "checkout charges full price"
+
+    Flipper.enable(:clearance_sale)
+    assert item.on_sale?
+    assert_equal 50, item.price_for_region("US")
+  end
+
+  test "the flag has to be on for everyone, not just one person" do
+    Flipper.disable(:clearance_sale)
+    Flipper.enable_actor(:clearance_sale, @buyer)
+    item = build_item(sale_name: "Hardware Day", sale_percentage: 50)
+
+    assert_not item.on_sale?
+  end
+
+  test "an ordinary always-on discount doesn't wait for the flag" do
+    Flipper.disable(:clearance_sale)
+    item = build_item(sale_percentage: 20)
+
+    assert item.on_sale?
+    assert_not item.clearance_sale?
   end
 
   test "a sale without a window is a flat, always-on discount" do

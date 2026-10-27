@@ -402,13 +402,27 @@ class ShopItem < ApplicationRecord
   # below sale_min_percentage. With no window it is a flat, always-on discount.
   def sale_active?
     return false unless sale_percentage.to_i.positive?
+    return false if clearance_sale? && !self.class.clearance_sales_open?
 
     now = Time.current
     (sale_starts_at.nil? || sale_starts_at <= now) && (sale_ends_at.nil? || now < sale_ends_at)
   end
 
   def sale_upcoming?
-    sale_percentage.to_i.positive? && sale_starts_at.present? && sale_starts_at > Time.current
+    sale_percentage.to_i.positive? && sale_starts_at.present? && sale_starts_at > Time.current &&
+      self.class.clearance_sales_open?
+  end
+
+  # A named or scheduled sale is part of the end-of-Stardance clearance. A bare
+  # sale_percentage stays an ordinary always-on discount.
+  def clearance_sale?
+    sale_name.present? || sale_starts_at.present? || sale_ends_at.present?
+  end
+
+  # Clearance sales can be set up ahead of time but only take effect, in prices
+  # and promotion, once the clearance_sale flag is fully on for everyone.
+  def self.clearance_sales_open?
+    Flipper.enabled?(:clearance_sale)
   end
 
   def sale_decays?
