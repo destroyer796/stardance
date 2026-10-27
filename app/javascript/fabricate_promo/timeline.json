@@ -1,0 +1,34 @@
+{
+  "speed": 1,
+  "impact": { "x": 0.5, "y": 0.85 },
+  "cues": {
+    "crack": 0.95,
+    "shatterSound": 0.95,
+    "fall": 1.44,
+    "doors": 2.5
+  },
+  "shatter": {
+    "minShards": 7,
+    "maxShards": 9,
+    "crackMs": 140,
+    "fallMs": 2200,
+    "gravity": 2600,
+    "minSpeed": 250,
+    "maxSpeed": 600,
+    "kick": 500,
+    "spin": 120,
+    "shakeMs": 900,
+    "shakePx": 18
+  },
+  "door": {
+    "closeMs": 650,
+    "pipeDelayMs": 0,
+    "shakeMs": 700,
+    "shakePx": 22,
+    "settleMs": 350,
+    "bolts": 3,
+    "boltMs": 220,
+    "openMs": 950
+  },
+  "volume": { "synth": 1, "shatter": 1, "pipe": 1 }
+}
