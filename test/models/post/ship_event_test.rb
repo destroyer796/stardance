@@ -213,6 +213,27 @@ class Post::ShipEventTest < ActiveSupport::TestCase
     end
   end
 
+  test "issue_payout! adds the Finality bonus for a ship posted in the window" do
+    Flipper.enable(Finality::FEATURE_FLAG)
+    ship = create_ship_event(hours: 2, vote_count: Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT)
+    ship.post.update_columns(created_at: Time.utc(2026, 10, 27, 16))
+
+    ship.refresh_payout_score!
+    ship.issue_payout!
+
+    assert_difference -> { @owner.ledger_entries.count }, 2 do
+      travel Post::ShipEvent::Payouts::PAYOUT_REVIEW_WINDOW + 1.minute do
+        ship.issue_payout!
+      end
+    end
+
+    ship.reload
+    expected_bonus = (ship.payout * 0.08).round
+    assert_equal expected_bonus, Finality.bonus_entry(ship).amount
+  ensure
+    Flipper.disable(Finality::FEATURE_FLAG)
+  end
+
   test "issue_payout! pays from locked snapshot" do
     ship = create_ship_event(hours: 2, vote_count: Post::ShipEvent::VOTES_REQUIRED_FOR_PAYOUT)
 

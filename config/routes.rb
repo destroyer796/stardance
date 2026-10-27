@@ -695,6 +695,10 @@ Rails.application.routes.draw do
     resource :hour_funnel, only: [ :show ], controller: "hour_funnel" do
       post :refresh
     end
+    resource :finality, only: [ :show ], controller: "finality" do
+      post :award
+      post :sync
+    end
     # Sections load lazily so one slow data source can't hold up the page.
     get    "mega_dashboard",                   to: "mega_dashboard#show",        as: :mega_dashboard
     get    "mega_dashboard/sections/:section", to: "mega_dashboard#section",     as: :mega_dashboard_section, constraints: { section: %r{[^/]+} }
