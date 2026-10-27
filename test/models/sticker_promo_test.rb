@@ -60,6 +60,7 @@ class StickerPromoTest < ActiveSupport::TestCase
     assert_equal StickerPromo::WEEKS.last.deadline, StickerPromo::DEADLINE
     assert_equal StickerPromo::WEEKS.last.label, StickerPromo::DEADLINE_LABEL
     assert_equal StickerPromo::WEEKS.last.window_start, StickerPromo.window_start
+    assert_equal StickerPromo::WEEKS.last.shop_item_id, StickerPromo.shop_item_id
   end
 
   private
