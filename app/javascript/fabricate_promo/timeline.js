@@ -1,6 +1,7 @@
 // Every tunable timing, position and volume in the rocket strike, kept in timeline.json:
 // - speed: playback rate of the whole thing, clip included.
-// - impact: where the rocket lands, as fractions of the viewport.
+// - impact: where the rocket's explosion lands, as fractions of the viewport. The page shatters
+//   from shatter.x and shatter.y, set separately.
 // - cues: seconds into the rocket clip at which each beat fires. They run on the clip's clock, so
 //   speed scales them along with it.
 // - clip: fades on the rocket clip's picture and its own sound. fadeOutAt and soundFadeOutAt are

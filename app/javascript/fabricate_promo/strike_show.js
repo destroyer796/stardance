@@ -15,7 +15,7 @@ export default class StrikeShow {
     this.sounds = sounds;
     this.strike = new RocketStrike(clip);
     if (this.strike.supported) {
-      this.shatter = new Shatter(RocketStrike.impact);
+      this.shatter = new Shatter();
       this.strike.mount(door.overlay);
       this.shatter.mount(door.overlay);
     }

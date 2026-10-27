@@ -16,6 +16,8 @@
     "soundFadeOutMs": 0
   },
   "shatter": {
+    "x": 0.5,
+    "y": 0.85,
     "minShards": 7,
     "maxShards": 9,
     "crackMs": 140,

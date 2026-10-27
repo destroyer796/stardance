@@ -1,5 +1,6 @@
 // The page the rocket hits, smashed. Each shard is a frozen copy of the site clipped to a wedge
-// fanning out from the impact, so when the copies crack apart and fall it looks like the page
+// fanning out from the shatter's origin (timeline.shatter.x and y, set apart from where the
+// explosion lands), so when the copies crack apart and fall it looks like the page
 // itself breaking. The copies are taken up front, while the clip is still loading, and stay hidden
 // over the real page until the rocket lands.
 //
@@ -10,9 +11,11 @@ import timeline from "./timeline";
 const SVG = "http://www.w3.org/2000/svg";
 
 export default class Shatter {
-  // The impact is in viewport pixels.
-  constructor({ x, y }) {
-    this.impact = { x, y };
+  constructor() {
+    this.origin = {
+      x: window.innerWidth * timeline.shatter.x,
+      y: window.innerHeight * timeline.shatter.y,
+    };
     this.layer = document.createElement("div");
     this.layer.className = "fabricate-shatter";
     this.pieces = document.createElement("div");
@@ -31,9 +34,9 @@ export default class Shatter {
     for (const shard of this.shards) this.restoreScroll(shard.page);
   }
 
-  // A crack along every ray, plus a broken ring round the impact.
+  // A crack along every ray, plus a broken ring round the origin.
   drawCracks(rays) {
-    const { x, y } = this.impact;
+    const { x, y } = this.origin;
     const reach = Math.hypot(window.innerWidth, window.innerHeight);
     const lines = rays.map((angle) => {
       let path = `M${x} ${y}`;
@@ -64,7 +67,7 @@ export default class Shatter {
 
   // The wedge between two rays, with its share of the cracks.
   cutShard(from, to, cracks) {
-    const { x, y } = this.impact;
+    const { x, y } = this.origin;
     const far = Math.hypot(window.innerWidth, window.innerHeight) * 2;
     const point = (angle) =>
       `${x + Math.cos(angle) * far}px ${y + Math.sin(angle) * far}px`;
@@ -75,7 +78,7 @@ export default class Shatter {
     element.append(page, cracks.cloneNode(true));
     this.pieces.append(element);
 
-    // Flung out from the impact, up a little, then left to gravity, spinning about its middle.
+    // Flung out from the origin, up a little, then left to gravity, spinning about its middle.
     const { minSpeed, maxSpeed, kick, spin } = timeline.shatter;
     const mid = (from + to) / 2;
     element.style.transformOrigin = `${x + Math.cos(mid) * 300}px ${y + Math.sin(mid) * 300}px`;
@@ -140,7 +143,7 @@ export default class Shatter {
   }
 
   // The shattered page `time` seconds into the strike. Until the crack it's hidden over the real
-  // page; then the cracks race out from the impact, the pieces shake, and from the fall they fly
+  // page; then the cracks race out from the origin, the pieces shake, and from the fall they fly
   // apart under gravity.
   at(time) {
     const { crack, fall } = timeline.cues;
@@ -167,7 +170,7 @@ export default class Shatter {
   }
 }
 
-// Rays out from the impact at uneven angles, in order round the circle.
+// Rays out from the origin at uneven angles, in order round the circle.
 function castRays() {
   const { minShards, maxShards } = timeline.shatter;
   const count =

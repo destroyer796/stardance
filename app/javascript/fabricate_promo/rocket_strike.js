@@ -49,14 +49,6 @@ export default class RocketStrike {
     return video;
   }
 
-  // Where on the screen the rocket lands, in viewport pixels.
-  static get impact() {
-    return {
-      x: window.innerWidth * timeline.impact.x,
-      y: window.innerHeight * timeline.impact.y,
-    };
-  }
-
   constructor(video) {
     this.video = video;
     this.canvas = document.createElement("canvas");
