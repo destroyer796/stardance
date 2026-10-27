@@ -147,6 +147,7 @@ export default class RocketStrike {
       const frame = () => {
         if (!this.running) return;
         this.draw();
+        this.fade();
         const time = this.video.ended ? Infinity : this.video.currentTime;
         for (const cue of pending.filter(({ at }) => time >= at)) {
           pending.splice(pending.indexOf(cue), 1);
@@ -157,6 +158,28 @@ export default class RocketStrike {
       };
       requestAnimationFrame(frame);
     });
+  }
+
+  // The clip's picture and sound each fade in from the start and out from their own cue.
+  fade() {
+    const { clip, volume } = timeline;
+    const time = this.video.currentTime;
+    this.canvas.style.opacity = envelope(
+      time,
+      clip.fadeInMs,
+      clip.fadeOutAt,
+      clip.fadeOutMs,
+    );
+    this.video.volume = Math.min(
+      1,
+      volume.clip *
+        envelope(
+          time,
+          clip.soundFadeInMs,
+          clip.soundFadeOutAt,
+          clip.soundFadeOutMs,
+        ),
+    );
   }
 
   ready() {
@@ -181,4 +204,14 @@ export default class RocketStrike {
     this.video.pause();
     this.canvas.remove();
   }
+}
+
+// 0 to 1 over `inMs` from the start, and back to 0 over `outMs` from `outAt` seconds. A zero-length
+// fade is a cut.
+function envelope(time, inMs, outAt, outMs) {
+  const ramp = (x) => (Number.isNaN(x) ? 1 : Math.min(1, Math.max(0, x)));
+  return Math.min(
+    ramp(time / (inMs / 1000)),
+    1 - ramp((time - outAt) / (outMs / 1000)),
+  );
 }
