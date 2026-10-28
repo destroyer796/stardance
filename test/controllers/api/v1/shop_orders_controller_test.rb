@@ -5,11 +5,13 @@ class Api::V1::ShopOrdersControllerTest < ActionDispatch::IntegrationTest
 
   PIXEL = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=".freeze
   UPS = "1Z999AA10123456784".freeze
+  API_FLAG = :"public_api_2026-08-28"
 
   setup do
     @packer = create_user(slack_id: "U_API_SO_PACKER", display_name: "api_packer")
     @packer.grant_role!(:fulfillment_person)
     @packer.regenerate_api_key
+    Flipper.enable(API_FLAG, @packer)
 
     item = ShopItem.new(
       name: "API Printer", description: "A physical item",
@@ -22,6 +24,10 @@ class Api::V1::ShopOrdersControllerTest < ActionDispatch::IntegrationTest
     @buyer.update!(has_gotten_free_stickers: true)
     @order = @buyer.shop_orders.create!(shop_item: item, quantity: 1, frozen_address: { "country" => "AU", "primary" => true, "line_one" => "1 Secret St" })
     @order.update_columns(aasm_state: "fulfilled", fulfilled_at: 1.day.ago, external_ref: "Bambu AU AU787303367675330561", region: "AU")
+  end
+
+  teardown do
+    Flipper.disable(API_FLAG, @packer)
   end
 
   test "requires an api key" do
@@ -109,6 +115,7 @@ class Api::V1::ShopOrdersControllerTest < ActionDispatch::IntegrationTest
 
   def assert_forbidden_for(user)
     user.regenerate_api_key
+    Flipper.enable(API_FLAG, user)
     headers = { "Authorization" => "Bearer #{user.api_key}" }
 
     get api_v1_shop_orders_path(query: "AU787"), headers: headers
