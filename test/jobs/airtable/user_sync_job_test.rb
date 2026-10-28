@@ -63,6 +63,7 @@ class Airtable::UserSyncJobTest < ActiveSupport::TestCase
     assert_equal "Rocket Garden", fields["Loops - stardanceUnshippedProject"]
     assert_equal 11.0, fields["Loops - stardanceUnshippedHours"]
     assert_equal 110, fields["Loops - stardanceUnshippedStardust"]
+    assert_equal 1, fields["Loops - stardanceUnshippedOtherProjects"]
   end
 
   test "field_mapping adds today's Finality bonus to the unshipped estimate" do
@@ -91,6 +92,7 @@ class Airtable::UserSyncJobTest < ActiveSupport::TestCase
     assert_nil fields["Loops - stardanceUnshippedProject"]
     assert_nil fields["Loops - stardanceUnshippedHours"]
     assert_nil fields["Loops - stardanceUnshippedStardust"]
+    assert_nil fields["Loops - stardanceUnshippedOtherProjects"]
   end
 
   private

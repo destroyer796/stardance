@@ -59,8 +59,9 @@ class Airtable::UserSyncJob < Airtable::BaseSyncJob
 
   private
 
-  # The user's biggest unshipped project and a rough stardust estimate for
-  # shipping it now, for the "you've got unshipped work" email. The estimate is
+  # The user's biggest unshipped project, a rough stardust estimate for
+  # shipping it now, and how many other projects also have unshipped time, for
+  # the "you've got unshipped work" email. The estimate is
   # unshipped hours at the user's own past payout rate (the typical ship's rate
   # if they've never been paid), plus today's Finality bonus while it's on.
   # Always sent, blank when there's nothing to ship, so the Loops properties
@@ -69,18 +70,22 @@ class Airtable::UserSyncJob < Airtable::BaseSyncJob
     fields = {
       "Loops - stardanceUnshippedProject" => nil,
       "Loops - stardanceUnshippedHours" => nil,
-      "Loops - stardanceUnshippedStardust" => nil
+      "Loops - stardanceUnshippedStardust" => nil,
+      "Loops - stardanceUnshippedOtherProjects" => nil
     }
     return fields if user.banned? || Project.shipping_closed?
 
-    hours, project = user.projects.map { |p| [ p.unshipped_hours, p ] }.max_by(&:first)
-    return fields unless hours.to_f.positive?
+    unshipped = user.projects.map { |p| [ p.unshipped_hours, p ] }.select { |hours, _| hours.positive? }
+    return fields if unshipped.empty?
+
+    hours, project = unshipped.max_by(&:first)
 
     rate = past_stardust_per_hour(user) || typical_stardust_per_hour
     fields.merge(
       "Loops - stardanceUnshippedProject" => project.title,
       "Loops - stardanceUnshippedHours" => hours.round(1),
-      "Loops - stardanceUnshippedStardust" => (hours * rate * (1 + Finality.current_rate.to_f)).round
+      "Loops - stardanceUnshippedStardust" => (hours * rate * (1 + Finality.current_rate.to_f)).round,
+      "Loops - stardanceUnshippedOtherProjects" => unshipped.size - 1
     )
   rescue => e
     Rails.logger.error("UserSyncJob unshipped_loops_fields failed for user #{user.id}: #{e.message}")
