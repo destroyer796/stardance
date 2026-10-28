@@ -12,8 +12,14 @@
         class: "fabricate-promo__card",
         aria: { label: "Fabricate: design any hardware project and we'll pay for it" },
         data: { fabricate_promo_target: "card", action: "click->fabricate-promo#launch pointerenter->fabricate-promo#warm focus->fabricate-promo#warm" } do %>
+    <span class="fabricate-promo__grid" aria-hidden="true">
+      <%= image_tag "fabricate/mat-grid.svg", alt: "", class: "fabricate-promo__grid-image" %>
+    </span>
     <span class="fabricate-promo__button" aria-hidden="true">
-      <span class="fabricate-promo__cap"></span>
+      <% %w[default hover pressed].each do |state| %>
+        <%= image_tag "fabricate/button-#{state}.svg", alt: "", width: 212, height: 154,
+              class: "fabricate-promo__button-state fabricate-promo__button-state--#{state}" %>
+      <% end %>
     </span>
     <span class="fabricate-promo__title">Fabricate</span>
     <span class="fabricate-promo__pitch">

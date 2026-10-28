@@ -20,7 +20,10 @@ class DiscoverRail::FabricatePromoWidgetTest < ViewComponent::TestCase
 
     assert_selector "section.fabricate-promo[data-controller='fabricate-promo'][data-fabricate-promo-url-value='#{DiscoverRail::FabricatePromoWidget::URL}'][data-fabricate-promo-cutscene-value='false']"
     assert_selector "a.fabricate-promo__card[href='/promos/fabricate']" do
-      assert_selector ".fabricate-promo__button .fabricate-promo__cap"
+      assert_selector ".fabricate-promo__grid img.fabricate-promo__grid-image[alt='']"
+      %w[default hover pressed].each do |state|
+        assert_selector ".fabricate-promo__button img.fabricate-promo__button-state--#{state}[width='212'][height='154'][alt='']"
+      end
       assert_selector ".fabricate-promo__title", text: "Fabricate"
       assert_selector ".fabricate-promo__pitch", text: "Design any hardware project and we'll pay for it."
       assert_no_selector ".fabricate-promo__runtime"
