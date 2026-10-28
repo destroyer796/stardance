@@ -25,7 +25,7 @@ class DiscoverRail::FabricatePromoWidgetTest < ViewComponent::TestCase
       assert_selector ".fabricate-promo__pitch", text: "Design any hardware project and we'll pay for it."
       assert_no_selector ".fabricate-promo__runtime"
     end
-    assert_match %r{<template data-fabricate-promo-target="door">.*landing-wide.*fabricate-door__leaf--left.*fabricate-door__leaf--right.*</template>}m,
+    assert_match %r{<template data-fabricate-promo-target="door">.*fabricate-door__leaf--left.*fabricate-door__leaf--right.*</template>}m,
       rendered_content
   end
 

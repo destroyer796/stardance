@@ -49,11 +49,14 @@ export default class RocketStrike {
     return video;
   }
 
+  // Creating the WebGL context and compiling the shader take tens of milliseconds, so the
+  // controller builds this ahead of the click, in an idle moment after the button is hovered.
   constructor(video) {
     this.video = video;
     this.canvas = document.createElement("canvas");
     this.canvas.className = "fabricate-promo__strike";
     this.gl = this.canvas.getContext("webgl", { premultipliedAlpha: true });
+    if (this.gl) this.setUpShader();
   }
 
   // Without WebGL there's no keying, so the strike is skipped and the doors come straight in.
@@ -67,7 +70,6 @@ export default class RocketStrike {
     const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
     this.canvas.width = Math.round(window.innerWidth * dpr);
     this.canvas.height = Math.round(window.innerHeight * dpr);
-    this.setUpShader();
     // A paused seek only lands a moment later; show the frame once it has.
     this.redraw = () => this.draw();
     this.video.addEventListener("seeked", this.redraw);
@@ -144,12 +146,15 @@ export default class RocketStrike {
   at(time, playing) {
     const { video } = this;
     const clipTime = Math.min(time, video.duration || time);
-    if (playing && time < video.duration) {
+    // Once the clip has ended it stays ended: play() would start it again from the top, and the
+    // show would follow it back. Firefox ends it a frame short of its duration, so at 240Hz the
+    // show's clock can still be just under the duration when it does.
+    if (playing && !video.ended && time < video.duration) {
       video.playbackRate = timeline.speed;
       if (Math.abs(video.currentTime - clipTime) > DRIFT_S)
         video.currentTime = clipTime;
       if (video.paused) video.play().catch(() => {});
-    } else {
+    } else if (!playing || !video.ended) {
       video.pause();
       if (Math.abs(video.currentTime - clipTime) > 1 / 120)
         video.currentTime = clipTime;

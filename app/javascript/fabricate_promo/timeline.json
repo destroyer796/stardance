@@ -21,8 +21,8 @@
   "shatter": {
     "x": 0.501,
     "y": 0.655,
-    "minShards": 9,
-    "maxShards": 18,
+    "minShards": 5,
+    "maxShards": 8,
     "crackMs": 140,
     "fallMs": 2200,
     "gravity": 2600,
@@ -40,8 +40,7 @@
     "shakePx": 22,
     "settleMs": 350,
     "bolts": 3,
-    "boltMs": 220,
-    "openMs": 950
+    "boltMs": 220
   },
   "volume": {
     "clip": 1,

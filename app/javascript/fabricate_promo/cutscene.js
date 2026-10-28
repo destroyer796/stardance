@@ -1,8 +1,9 @@
 // A minute-long, letterboxed, fullscreen movie trailer for Fabricate that the visitor can't skip.
 // It takes the whole screen, locks the keyboard (Escape included, where the browser allows it)
 // and the pointer, swallows every key and click with a "DENIED" stamp, and ends by slamming the
-// blast door and opening it on Fabricate. Browsers keep their own escape hatches (holding Escape,
-// switching tabs, closing the window); when the visitor uses one the trailer simply keeps rolling.
+// blast door and unlocking it for Fabricate to open. Browsers keep their own escape hatches
+// (holding Escape, switching tabs, closing the window); when the visitor uses one the trailer
+// simply keeps rolling.
 import { animate, wait } from "./blast_door";
 
 const RUNTIME_MS = 60_000;
@@ -209,7 +210,6 @@ export default class Cutscene {
     await this.door.slam();
     this.layer.remove();
     await this.door.unlock();
-    await this.door.open();
     await wait(Math.max(0, RUNTIME_MS - (performance.now() - this.start)));
     this.release();
   }
@@ -281,8 +281,6 @@ export default class Cutscene {
     this.say("Fabricate.");
     setTimeout(() => {
       this.sounds.clang();
-      this.door.dust.dislodge(200);
-      this.door.dust.settle();
       this.door.shake(800, 26);
     }, 420);
   }

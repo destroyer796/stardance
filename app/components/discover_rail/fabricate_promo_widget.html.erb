@@ -23,13 +23,9 @@
       <span class="fabricate-promo__runtime">▶ 1:00 · unskippable</span>
     <% end %>
   <% end %>
-  <%# The blast door the click slams shut over the page, opening on Fabricate. %>
+  <%# The blast door the click slams shut over the page. Fabricate opens it on its side. %>
   <template data-fabricate-promo-target="door">
     <div class="fabricate-door fabricate-door--hollow">
-      <picture class="fabricate-door__view">
-        <source media="(max-width: 600px)" srcset="<%= helpers.image_path("fabricate/landing-narrow.jpg") %>">
-        <%= image_tag "fabricate/landing-wide.jpg", alt: "", class: "fabricate-door__view-image" %>
-      </picture>
       <% %i[left right].each do |side| %>
         <div class="fabricate-door__leaf fabricate-door__leaf--<%= side %>">
           <div class="fabricate-door__plate"></div>

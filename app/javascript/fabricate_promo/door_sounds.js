@@ -136,18 +136,6 @@ export default class DoorSounds {
     this.noise({ at, dur: 0.06, gain: 0.5, freq: 1800, q: 3 });
   }
 
-  // Hydraulics venting as the seal breaks.
-  hiss(at, dur) {
-    this.noise({
-      at,
-      dur,
-      gain: 0.35,
-      filter: "highpass",
-      freq: 3500,
-      swell: 0.05,
-    });
-  }
-
   // One of the recorded samples, if it has loaded.
   async play(name) {
     const buffer = await this.samples?.[name];

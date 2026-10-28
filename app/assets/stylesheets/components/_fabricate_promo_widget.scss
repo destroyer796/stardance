@@ -156,8 +156,7 @@
     overflow: hidden;
   }
 
-  &__strike,
-  &__dust {
+  &__strike {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -280,22 +279,6 @@ $fabricate-door-brace: linear-gradient(
   // While it slams shut, the page the visitor is leaving still shows around it.
   &--hollow {
     background: transparent;
-  }
-
-  &--hollow &__view {
-    visibility: hidden;
-  }
-
-  &__view {
-    position: absolute;
-    inset: 0;
-  }
-
-  &__view-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
   }
 
   // Each leaf reaches half a tooth past the middle, so their teeth mesh with no gap when shut. The

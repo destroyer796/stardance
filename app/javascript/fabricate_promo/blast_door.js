@@ -1,15 +1,13 @@
 // The Fabricate ad's toothed blast door at full screen. It stamps out the widget's door template,
 // starts with both leaves slid out of sight, slams them shut over the page, shakes the screen and
-// the dust loose, throws the bolts, and opens again on Fabricate's landing page.
+// throws the bolts. It ends shut: Fabricate draws the same door over its landing page and opens
+// it there, so the visitor arrives behind it.
 //
 // The door is drawn from a time, in seconds since it started closing (see `at`), so it can be
 // played, paused and scrubbed as part of a sequence. Its sounds are `events` on that same clock.
-import Dust from "./dust";
 import Sequence from "./sequence";
 import timeline from "./timeline";
 
-const MAX_DPR = 2;
-const DUST_STEP = 1 / 60;
 const BOLT_JOLT_PX = 5;
 
 export default class BlastDoor {
@@ -21,46 +19,30 @@ export default class BlastDoor {
 
     this.door = template.content.firstElementChild.cloneNode(true);
     this.setGap(1);
-
-    const canvas = document.createElement("canvas");
-    canvas.className = "fabricate-promo__dust";
-    this.dust = new Dust(canvas);
-    this.dustTime = 0;
-    this.overlay.append(this.door, canvas);
+    this.overlay.append(this.door);
   }
 
   mount() {
     document.body.append(this.overlay);
-    this.dust.resize(
-      window.innerWidth,
-      window.innerHeight,
-      Math.min(window.devicePixelRatio || 1, MAX_DPR),
-    );
   }
 
   // The door's beats, in seconds since it started closing.
   get beats() {
-    const { closeMs, settleMs, bolts, boltMs, openMs } = timeline.door;
+    const { closeMs, settleMs, bolts, boltMs } = timeline.door;
     const shut = closeMs / 1000;
     const unlocking = shut + settleMs / 1000;
-    const opening = unlocking + (bolts * boltMs) / 1000;
-    return { shut, unlocking, opening, opened: opening + openMs / 1000 };
+    return { shut, unlocking, unlocked: unlocking + (bolts * boltMs) / 1000 };
   }
 
   get length() {
-    return this.beats.opened;
+    return this.beats.unlocked;
   }
 
   // The door as it stands `time` seconds after it started closing.
   at(time) {
-    const { shut, unlocking, opening, opened } = this.beats;
+    const { shut, unlocking } = this.beats;
     const { shakeMs, shakePx, bolts, boltMs } = timeline.door;
-    let gap = 1;
-    if (time < 0) gap = 1;
-    else if (time < shut) gap = 1 - easeIn(clamp(time / shut));
-    else if (time < opening) gap = 0;
-    else gap = easeInOut(clamp((time - opening) / (opened - opening)));
-    this.setGap(gap);
+    this.setGap(1 - easeIn(clamp(time / shut)));
     // Fabricate is behind the door once the leaves have met.
     this.door.classList.toggle("fabricate-door--hollow", time < shut);
 
@@ -73,40 +55,12 @@ export default class BlastDoor {
       );
     }
     applyJolt(this.overlay, jolt);
-    this.dustAt(time);
-  }
-
-  // Replays the dust up to `time`: forwards it just carries on, backwards it starts over.
-  dustAt(time) {
-    const { shut, opening } = this.beats;
-    if (time < this.dustTime) {
-      this.dust.reset();
-      this.dustTime = 0;
-    }
-    const kicks = [
-      {
-        at: shut,
-        run: () => {
-          this.dust.dislodge(450);
-          this.dust.burst(window.innerWidth / 2, 30);
-        },
-      },
-      { at: opening, run: () => this.dust.burst(window.innerWidth / 2, 8) },
-    ];
-    while (this.dustTime + DUST_STEP <= time) {
-      for (const kick of kicks)
-        if (kick.at >= this.dustTime && kick.at < this.dustTime + DUST_STEP)
-          kick.run();
-      this.dust.step(DUST_STEP);
-      this.dustTime += DUST_STEP;
-    }
-    this.dust.draw();
   }
 
   // The door's sounds, in seconds since it started closing. Lengths are scaled to the current
   // speed as each one plays.
   get events() {
-    const { shut, unlocking, opening, opened } = this.beats;
+    const { shut, unlocking } = this.beats;
     const { bolts, boltMs, pipeDelayMs } = timeline.door;
     const scaled = (s) => s / timeline.speed;
     return [
@@ -123,8 +77,6 @@ export default class BlastDoor {
         at: unlocking + (bolt * boltMs) / 1000,
         run: () => this.sounds.clunk(),
       })),
-      { at: opening, run: () => this.sounds.hiss(0, scaled(1.2)) },
-      { at: opening, run: () => this.sounds.rumble(scaled(opened - opening)) },
     ];
   }
 
@@ -138,11 +90,7 @@ export default class BlastDoor {
   }
 
   unlock() {
-    return this.playBetween(this.beats.unlocking, this.beats.opening);
-  }
-
-  open() {
-    return this.playBetween(this.beats.opening, this.beats.opened);
+    return this.playBetween(this.beats.unlocking, this.beats.unlocked);
   }
 
   playBetween(from, to) {
@@ -207,4 +155,3 @@ const noise = (n) => {
   return (s - Math.floor(s)) * 2 - 1;
 };
 const easeIn = (t) => t * t * t;
-const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);

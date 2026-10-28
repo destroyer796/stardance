@@ -1,23 +1,24 @@
 // The whole rocket strike as one sequence: the clip comes in, the page shatters under it, and the
-// blast door slams shut over the wreckage and opens on Fabricate. Everything is drawn from the one
+// blast door slams shut over the wreckage and unlocks. Everything is drawn from the one
 // clock (seconds into the clip), so the show can be played, paused and scrubbed as a piece.
 //
 // Without WebGL there's no keying, so the clip and the shatter are skipped and the door starts
 // straight away.
-import RocketStrike from "./rocket_strike";
 import Sequence from "./sequence";
-import Shatter from "./shatter";
 import timeline from "./timeline";
 
 export default class StrikeShow {
-  constructor({ door, sounds, clip }) {
+  // `strike` and `shatter` are built ahead of time, once the button has been hovered.
+  constructor({ door, sounds, strike, shatter }) {
     this.door = door;
     this.sounds = sounds;
-    this.strike = new RocketStrike(clip);
+    this.strike = strike;
     if (this.strike.supported) {
-      this.shatter = new Shatter();
+      this.shatter = shatter;
       this.strike.mount(door.overlay);
       this.shatter.mount(door.overlay);
+    } else {
+      shatter.destroy();
     }
     this.sequence = new Sequence({
       to: () => this.length,
