@@ -47,6 +47,10 @@
 require "test_helper"
 
 class ProjectTest < ActiveSupport::TestCase
+  setup do
+    Flipper.enable(:hardware_flow)
+  end
+
   test "hackatime_keys reads preloaded rows without querying and matches the unloaded result" do
     project = Project.create!(title: "Keys")
     User::HackatimeProject.create!(user: users(:one), project: project, name: "shared")

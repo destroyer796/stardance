@@ -2,6 +2,7 @@ require "test_helper"
 
 class Projects::FundingRequestsControllerTest < ActionDispatch::IntegrationTest
   setup do
+    Flipper.enable(:hardware_flow)
     Flipper.enable(:hardware_action_items)
 
     @owner = create_user(slack_id: "U_FRC_OWNER", display_name: "frc-owner", verified: true)
@@ -14,6 +15,7 @@ class Projects::FundingRequestsControllerTest < ActionDispatch::IntegrationTest
   end
 
   teardown do
+    Flipper.disable(:hardware_flow)
     Flipper.disable(:hardware_action_items)
   end
 

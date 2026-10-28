@@ -4,6 +4,8 @@
 # (onboarded_at still nil) — regardless of whether they entered via the email
 # flow (guest) or directly through HCA. The freshness window is anchored on
 # when they started (created_at).
+#
+# Gated on the :new_onboarding flag.
 module OnboardingResumable
   extend ActiveSupport::Concern
 
@@ -24,6 +26,8 @@ module OnboardingResumable
   end
 
   def onboarding_in_progress?(user)
+    return false unless Flipper.enabled?(:new_onboarding)
+
     user.present? && user.onboarded_at.nil?
   end
 

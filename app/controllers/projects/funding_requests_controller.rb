@@ -1,6 +1,7 @@
 class Projects::FundingRequestsController < ApplicationController
   include ActionItemGate
 
+  before_action -> { head :not_found unless Flipper.enabled?(:hardware_flow, current_user) }
   before_action :set_project
 
   # Submitted from the "Submit Design to Get Project Funding" popup on the

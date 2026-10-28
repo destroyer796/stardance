@@ -228,7 +228,11 @@ class ProjectsController < ApplicationController
   # project team, reviewers, admins and helpers.
   def ship_review_history_visible?
     return true if @project.hardware?
-    current_user.present? && (current_user.can_review? || current_user.helper?)
+    return false unless current_user
+    return true if current_user.can_review? || current_user.helper?
+    return false unless Flipper.enabled?(:week_1_release, current_user)
+
+    @is_member
   end
   private :ship_review_history_visible?
 
@@ -267,6 +271,7 @@ class ProjectsController < ApplicationController
   def visible_queue_mismatch
     return nil unless current_user
     return nil unless @is_member || current_user.admin?
+    return nil unless Flipper.enabled?(:hardware_flow, current_user)
 
     @project.review_awaiting_queue_answer
   end

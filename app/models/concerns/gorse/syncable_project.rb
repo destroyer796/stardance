@@ -10,7 +10,7 @@ module Gorse::SyncableProject
   end
 
   def sync_to_gorse_later
-    if Gorse.enabled?
+    if Gorse.enabled? && Flipper.enabled?(:gorse_project_recommendations)
       Gorse::SyncProjectJob.perform_later(self)
     end
   end
@@ -20,7 +20,7 @@ module Gorse::SyncableProject
   end
 
   def sync_hardware_posts_to_gorse_later
-    return unless Gorse.enabled?
+    return unless Gorse.enabled? && Flipper.enabled?(:gorse_personalized_feed)
 
     posts.find_each(&:sync_to_gorse_later)
     repost_ids = Post::Repost.where(original_post_id: posts.select(:id)).select(:id)

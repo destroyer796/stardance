@@ -81,6 +81,7 @@ class Shop::ItemsController < Shop::BaseController
   def prepare_shop_chrome
     @shop_open = Flipper.enabled?(:shop_open, current_user)
     @clearance_sale_enabled = clearance_sale_enabled?
+    @hardware_flow_enabled = Flipper.enabled?(:hardware_flow, current_user)
 @user_region = user_region
     @body_class = "shop-page"
     @region_options = Shop::Regionalizable::REGIONS.map do |code, config|

@@ -21,6 +21,10 @@ class HardwareReviewVisibilityTest < ActionDispatch::IntegrationTest
     review.update_columns(decided_at: 1.day.ago)
   end
 
+  teardown do
+    Flipper.disable_actor(:hardware_flow, @owner)
+  end
+
   def review_visible?
     get project_path(@project)
     assert_response :success
@@ -28,6 +32,7 @@ class HardwareReviewVisibilityTest < ActionDispatch::IntegrationTest
   end
 
   test "the project owner sees the review" do
+    Flipper.enable_actor(:hardware_flow, @owner)
     sign_in @owner
     assert review_visible?, "the project owner should see the review"
   end

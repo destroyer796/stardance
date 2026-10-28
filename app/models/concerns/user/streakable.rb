@@ -84,10 +84,15 @@ module User::Streakable
     streak_activities.where("coded_seconds > 0").maximum(:activity_date)
   end
 
-  # Every run to show and redeem against, newest first. Read this rather than
-  # the raw association: a finished run keeps unclaimed stickers claimable after
-  # the next one starts, so more than one can be live at a time.
+  def sticky_streaks_enabled? = StickyStreak.enabled_for?(self)
+
+  # Every run to show and redeem against, newest first, or nothing while the
+  # challenge is switched off. Read this rather than the raw association: a
+  # finished run keeps unclaimed stickers claimable after the next one starts,
+  # so more than one can be live at a time.
   def current_sticky_streaks
+    return [] unless sticky_streaks_enabled?
+
     @current_sticky_streaks ||= sticky_streaks.includes(:claims)
       .sort_by { |run| [ run.started_on, run.id ] }
       .reverse
@@ -103,6 +108,8 @@ module User::Streakable
   # first run, and one second streak once either run has reached day 21. A
   # broken restart, or a broken second streak, is the end of the line.
   def startable_sticky_streak_kind
+    return nil unless sticky_streaks_enabled?
+
     runs = current_sticky_streaks.index_by(&:kind)
     return :first if runs.empty?
     return :retry if runs["first"]&.failed? && runs["retry"].nil?

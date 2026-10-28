@@ -4,6 +4,7 @@ module Notifications
   module Hardware
     class ReviewUndoneTest < ActiveSupport::TestCase
       setup do
+        Flipper.enable(:hardware_flow)
         @owner = create_user(slack_id: "U_RU_OWNER", display_name: "ru_owner", verified: true)
         @reviewer = create_user(slack_id: "U_RU_REV", display_name: "ru_rev")
         @project = Project.create!(title: "Undone HW", hardware_stage: "design")
@@ -17,6 +18,8 @@ module Notifications
         )
         @funding.update!(reviewer: @reviewer, status: :returned, feedback: "redo")
       end
+
+      teardown { Flipper.disable(:hardware_flow) }
 
       test "is registered and high priority" do
         assert_includes Notifications::Registry.all, Notifications::Hardware::ReviewUndone

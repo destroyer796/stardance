@@ -3,7 +3,7 @@
 namespace :gorse do
   desc "Backfill hardware feed categories for existing posts"
   task backfill_hardware_feed: :environment do
-    unless Gorse.enabled?
+    unless Gorse.enabled? && Flipper.enabled?(:gorse_personalized_feed)
       puts "Gorse personalized feed is disabled."
       next
     end

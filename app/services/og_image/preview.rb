@@ -7,6 +7,7 @@ module OgImage
       OgImage::Devlog,
       OgImage::Missions,
       OgImage::Shop,
+      OgImage::ShopOrderFlex,
       OgImage::Certificate
     ].freeze
 

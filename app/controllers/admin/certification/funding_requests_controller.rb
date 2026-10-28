@@ -1,6 +1,7 @@
 class Admin::Certification::FundingRequestsController < Admin::Certification::ApplicationController
   include HardwareReviewUndoable
 
+  before_action -> { head :not_found unless Flipper.enabled?(:hardware_flow, current_user) }
   before_action :set_funding_request, except: :sync_all_to_airtable
   before_action :set_body_class, except: :sync_all_to_airtable
 

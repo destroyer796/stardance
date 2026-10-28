@@ -90,16 +90,19 @@
           <%= render "projects/name_prompt", id: "name-prompt-software" %>
         <% end %>
 
-        <button type="button"
-                class="project-creation__blank-btn project-creation__blank-btn--hardware"
-                data-action="project-builder#toggle"
-                data-project-builder-target="hardwareBtn"
-                aria-expanded="false"
-                aria-controls="project-creation-stage-chooser">
-          New hardware project +
-        </button>
+        <% if Flipper.enabled?(:hardware_flow, current_user) %>
+          <button type="button"
+                  class="project-creation__blank-btn project-creation__blank-btn--hardware"
+                  data-action="project-builder#toggle"
+                  data-project-builder-target="hardwareBtn"
+                  aria-expanded="false"
+                  aria-controls="project-creation-stage-chooser">
+            New hardware project +
+          </button>
+        <% end %>
       </div>
 
+      <% if Flipper.enabled?(:hardware_flow, current_user) %>
       <div id="project-creation-stage-chooser"
            class="project-creation__stage-chooser"
            data-project-builder-target="chooser"
@@ -128,6 +131,7 @@
           <% end %>
         </div>
       </div>
+      <% end %>
     </section>
 
   </div>

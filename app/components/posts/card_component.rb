@@ -162,7 +162,7 @@ module Posts
     def show_views?
       return show_views unless show_views.nil?
 
-      true
+      helpers.show_post_views?
     end
 
     def views_count

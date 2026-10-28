@@ -35,10 +35,12 @@
                 title="Devlogs reviewed in the last <%= window %> — reviewers with nothing in that window aren't ranked">
               <%= rank_link.call("devlogs", "Devlogs (#{window})") %>
             </th>
-            <th class="ysws-dashboard__col-num"
-                title="Devlogs reviewed per day so far this review week (goal: <%= devlog_goal %>/day)">
-              Locked in?
-            </th>
+            <% if show_pace_column %>
+              <th class="ysws-dashboard__col-num"
+                  title="Devlogs reviewed per day so far this review week (goal: <%= devlog_goal %>/day)">
+                Locked in?
+              </th>
+            <% end %>
             <th class="ysws-dashboard__col-num"
                 title="Projects completed since 4pm ET today (goal: <%= project_goal %>/day)">
               Projects (today)
@@ -65,10 +67,12 @@
                             class: ("ysws-dashboard__reviewer-link--on-pace" if on_pace) %>
               </td>
               <td class="ysws-dashboard__col-num"><%= row[:devlogs] %></td>
-              <td class="ysws-dashboard__col-num">
-                <%= number_with_precision daily_averages[row[:reviewer_id]].to_f,
-                                          precision: 1, strip_insignificant_zeros: true %>
-              </td>
+              <% if show_pace_column %>
+                <td class="ysws-dashboard__col-num">
+                  <%= number_with_precision daily_averages[row[:reviewer_id]].to_f,
+                                            precision: 1, strip_insignificant_zeros: true %>
+                </td>
+              <% end %>
               <td class="ysws-dashboard__col-num"><%= row[:projects_today] %></td>
               <td class="ysws-dashboard__col-num"><%= row[:projects] %></td>
               <td class="ysws-dashboard__col-num"><%= row[:stardust] %></td>
@@ -94,6 +98,6 @@
       <canvas data-certification--ysws--reviewer-chart-target="canvas"></canvas>
     </div>
 
-    <%= render "progress", progress: progress %>
+    <%= render "progress", progress: progress if progress %>
   </div>
 </section>

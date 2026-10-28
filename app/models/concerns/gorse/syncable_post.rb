@@ -8,7 +8,7 @@ module Gorse::SyncablePost
   end
 
   def sync_to_gorse_later
-    if Gorse.enabled?
+    if Gorse.enabled? && Flipper.enabled?(:gorse_personalized_feed)
       Gorse::SyncPostJob.perform_later(self)
     end
   end

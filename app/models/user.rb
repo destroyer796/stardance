@@ -284,7 +284,7 @@ class User < ApplicationRecord
   # (no-ops unless the signup carried a raffle referral code). See the engine.
   include Raffle::ReferralTrackable
 
-  after_create_commit :increment_signup_counter
+  after_create_commit :increment_signup_counter, if: -> { Flipper.enabled?(:new_onboarding) }
 
   KERBAL_FIRST_NAMES = %w[
     Jebediah Bill Bob Valentina Lodwig Shepard Gus Wernher Gene
@@ -322,6 +322,8 @@ class User < ApplicationRecord
   REFERRAL_ACHIEVEMENTS = { referral_2: 2, referral_5: 5 }.freeze
 
   def sync_referral_achievements!
+    return unless Flipper.enabled?(:week_2_release, self)
+
     count = verified_referral_count
     REFERRAL_ACHIEVEMENTS.each do |slug, threshold|
       if count >= threshold

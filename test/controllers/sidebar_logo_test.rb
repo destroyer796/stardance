@@ -22,7 +22,6 @@ class SidebarLogoTest < ActionDispatch::IntegrationTest
     get home_path
     assert_select "img.sidebar__logo-img[src*='stardance-logo']", count: 1
 
-    users(:two).update!(onboarded_at: 1.week.ago)
     sign_in users(:two)
     get home_path
     assert_select "img.sidebar__logo-img[src*='stardance-logo']", count: 1

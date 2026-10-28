@@ -78,11 +78,7 @@ class SessionsController < ApplicationController
       return redirect_to(root_path, alert:)
     end
 
-    unless params[:id].present?
-      ensure_dev_hca_identity(user)
-      # Seeded users never finished onboarding, which would bounce them back out.
-      user.update!(onboarded_at: Time.current) if user.onboarded_at.nil?
-    end
+    ensure_dev_hca_identity(user) unless params[:id].present?
 
     sign_in_user(user, auth_level: user.hca_linked? ? "hca" : "guest")
     session[:show_raffle_referral_banner] = params[:raffle_referrer] if params[:raffle_referrer].present?
